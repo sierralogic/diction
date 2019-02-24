@@ -168,6 +168,26 @@
 (def joda-class (class (t/now)))
 (def years-millis (* 365 24 60 60 1000))
 
+(defn strict-int?
+  "Determines if `x` is a strict `int`."
+  [x]
+  (instance? Integer x))
+
+(defn strict-long?
+  "Determines if `x` is strict `long`."
+  [x]
+  (instance? Long x))
+
+(defn strict-float?
+  "Determines if `x` is a strict `float`."
+  [x]
+  (instance? Float x))
+
+(defn strict-double?
+  "Determines if `x` is a strict `double`."
+  [x]
+  (instance? Double x))
+
 (defn joda?
   "Determine if `x` is a Joda DateTime instance."
   [x]
@@ -211,9 +231,9 @@
 (defn random-float
   "Generates random float."
   []
-  (* (if (odd? (System/currentTimeMillis)) -1 1)
-     (rand)
-     (dec Float/MAX_VALUE)))
+  (float (* (if (odd? (System/currentTimeMillis)) -1 1)
+            (float (rand))
+            (float (dec Float/MAX_VALUE)))))
 
 (defn random-double
   "Generates random double."
@@ -244,7 +264,7 @@
 ;; generators
 
 (def uuid-regex-pattern "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
-(def uuid-regex (re-pattern uuid-regex-pattern)) ; "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
+(def uuid-regex (re-pattern uuid-regex-pattern))
 (def uuid-regex-legacy #"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
 (defn generate-regex-string
@@ -360,8 +380,8 @@
            norm-max)))
      (random-long))))
 
-(def default-gen-float-min Float/MIN_VALUE)
-(def default-gen-float-max Float/MAX_VALUE)
+(def default-gen-float-min (float Float/MIN_VALUE))
+(def default-gen-float-max (float Float/MAX_VALUE))
 
 (defn generate-random-float
   "Generates random float numbers given optional minimum `min` and maximum `max`.
@@ -375,11 +395,11 @@
            df (try
                 (- norm-max norm-min)
                 (catch Exception _
-                  Float/MAX_VALUE))]
+                  (float Float/MAX_VALUE)))]
        (try
          (float (+ norm-min (* df (rand))))
          (catch Exception _
-           norm-max)))
+           (float norm-max))))
      (random-float))))
 
 (def default-gen-double-min Double/MIN_VALUE)
@@ -547,7 +567,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (int? v)
+  (if-not (strict-int? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not an int number.")}]
     (if-not (if min (>= v min) true)
@@ -562,7 +582,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (int? v)
+  (if-not (strict-long? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a long number.")}]
     (if-not (if min (>= v min) true)
@@ -577,7 +597,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (float? v)
+  (if-not (strict-float? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a float number.")}]
     (if-not (if min (>= v min) true)
@@ -592,7 +612,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (double? v)
+  (if-not (strict-double? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a double number.")}]
     (if-not (if min (>= v min) true)
@@ -715,13 +735,13 @@
   [m]
   (if (= :string (:type m))
     (let [rgx-ptn (:regex-pattern m)
-          rgx (when rgx-ptn (re-pattern rgx-ptn))]
-      (merge (assoc m :gen-f (or ;(:gen-f m)
-                                 (if rgx
-                                   (wrap-gen-f (partial generate-regex-string rgx))
-                                   (wrap-gen-f (partial generate-random-string (:min m) (:max m)))))
-                      :valid-f (or ; (:valid-f m)
-                                   (partial validate-string (:min m) (:max m) rgx)))
+          rgx (if rgx-ptn (re-pattern rgx-ptn) (:regex m))]
+      (merge (assoc m :gen-f (or                            ;(:gen-f m)
+                               (if rgx
+                                 (wrap-gen-f (partial generate-regex-string rgx))
+                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m)))))
+                      :valid-f (or                          ; (:valid-f m)
+                                 (partial validate-string (:min m) (:max m) rgx)))
              (when rgx {:regex rgx})))
     m))
 
@@ -732,12 +752,12 @@
   (if (= :keyword (:type m))
     (let [rgx-ptn (:regex-pattern m)
           rgx (when rgx-ptn (re-pattern rgx-ptn))]
-      (merge (assoc m :gen-f (or ; (:gen-f m)
-                                 (if rgx
-                                   (wrap-gen-f (partial generate-regex-keyword rgx))
-                                   (wrap-gen-f (partial generate-random-keyword (:min m) (:max m)))))
-                      :valid-f (or ; (:valid-f m)
-                                   (partial validate-string (:min m) (:max m) rgx)))
+      (merge (assoc m :gen-f (or                            ; (:gen-f m)
+                               (if rgx
+                                 (wrap-gen-f (partial generate-regex-keyword rgx))
+                                 (wrap-gen-f (partial generate-random-keyword (:min m) (:max m)))))
+                      :valid-f (or                          ; (:valid-f m)
+                                 (partial validate-keyword (:min m) (:max m) rgx)))
              (when rgx {:regex rgx})))
     m))
 
