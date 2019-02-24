@@ -3,10 +3,6 @@
             [clojure.test :refer :all]
             [diction.core :refer :all]))
 
-(deftest a-test
-  (testing "Nope.  All good... but not tested."
-    (is (= 1 1))))
-
 (def valid-values {:int (int 42)
                    :long 4242
                    :float (float 9.99)
