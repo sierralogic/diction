@@ -188,6 +188,14 @@
                  [cv v])
                [v])))
 
+(defn ->str
+  "Convert `x` to string."
+  [x]
+  (when x
+    (if (keyword? x)
+      (-> x str (subs 1))
+      (str x))))
+
 (def rndm (Random.))
 
 (defn random-int
@@ -247,8 +255,19 @@
       (gen/sample 1)
       first))
 
+(defn generate-regex-keyword
+  "Generates a keyword using the regular expression `regex`.  Basic regex is supported only."
+  [regex]
+  (-> regex
+      sg/string-generator
+      (gen/sample 1)
+      first
+      keyword))
+
 (def random-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ 1234567890-_=+")
 (def default-random-count 64)
+
+(def random-kw-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890")
 
 (defn generate-random-string
   "Generates a random string given optional minimum length `min` and maximum lenghts `max`.
@@ -264,6 +283,15 @@
      (reduce (fn [a _] (str a (nth rs (rand-int rsc))))
              ""
              (range (+ from (rand-int (inc (- to from)))))))))
+
+(defn generate-random-keyword
+  "Generates a random keyword given optional minimum length `min` and maximum lenghts `max`.
+  Default min is 0.  Default max is 64."
+  ([] (generate-random-keyword nil nil))
+  ([max] (generate-random-keyword max nil))
+  ([min max] (generate-random-keyword min max nil))
+  ([min max random-str]
+   (keyword (generate-random-string min max (or random-str random-kw-chars)))))
 
 (def default-gen-joda-min (- (System/currentTimeMillis) (* 10 years-millis)))
 (def default-gen-joda-max (+ (System/currentTimeMillis) (* 10 years-millis)))
@@ -457,6 +485,17 @@
         (when-not (if max (<= (count v) max) true)
           [{:id id :entry entry :v v
             :msg (str "Failed '" id "': value '" v "' has too many characters. (max=" max ")")}])))))
+
+(defn validate-keyword
+  "Validates a string value `v` given minimum length `min` (if non-nil), maximum length `max` (if non-nil),
+  and regular expression `regex` (if non-nil).  The element id `id` of the string element as well as the element entry `entry`
+  of the string element is also provided for better validation failure messages."
+  [min max regex
+   v id entry]
+  (if-not (keyword? v)
+    [{:id id :entry entry :v v
+      :msg (str "Failed '" id "': value '" v "' is not a keyword.")}]
+    (validate-string min max regex (->str v) id entry)))
 
 (defn validate-vector-of
   "Validates the vector of element id `vector-of-element-id` given a mininum length `min`, maximum length `max`,
@@ -677,11 +716,27 @@
   (if (= :string (:type m))
     (let [rgx-ptn (:regex-pattern m)
           rgx (when rgx-ptn (re-pattern rgx-ptn))]
-      (merge (assoc m :gen-f (or (:gen-f m)
+      (merge (assoc m :gen-f (or ;(:gen-f m)
                                  (if rgx
                                    (wrap-gen-f (partial generate-regex-string rgx))
                                    (wrap-gen-f (partial generate-random-string (:min m) (:max m)))))
-                      :valid-f (or (:valid-f m)
+                      :valid-f (or ; (:valid-f m)
+                                   (partial validate-string (:min m) (:max m) rgx)))
+             (when rgx {:regex rgx})))
+    m))
+
+(defn normalize-keyword
+  "Normalizes the keyword entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
+  the element map `m`."
+  [m]
+  (if (= :keyword (:type m))
+    (let [rgx-ptn (:regex-pattern m)
+          rgx (when rgx-ptn (re-pattern rgx-ptn))]
+      (merge (assoc m :gen-f (or ; (:gen-f m)
+                                 (if rgx
+                                   (wrap-gen-f (partial generate-regex-keyword rgx))
+                                   (wrap-gen-f (partial generate-random-keyword (:min m) (:max m)))))
+                      :valid-f (or ; (:valid-f m)
                                    (partial validate-string (:min m) (:max m) rgx)))
              (when rgx {:regex rgx})))
     m))
@@ -741,6 +796,7 @@
                                normalize-string
                                normalize-class
                                normalize-joda
+                               normalize-keyword
                                normalize-vector
                                normalize-map)]
     normalized-element))
@@ -748,9 +804,7 @@
 (defn element!
   "Registers element with id `id`, element map `element` with optional element context `ctx and parent element id `parent-id`.  The
    parent element may be used as a base for the element definition."
-  ([{:keys [parent-id id element ctx]}]
-   (println :element! :m :parent-id parent-id :id id :element element :ctx ctx)
-   (element! parent-id id element ctx))
+  ([{:keys [parent-id id element ctx]}] (element! parent-id id element ctx))
   ([id element] (element! nil id element nil))
   ([id element ctx] (element! nil id element ctx))
   ([parent-id id element ctx]
@@ -798,6 +852,13 @@
   ([parent-id id element] (element! parent-id id element nil))
   ([parent-id id element ctx]
    (element! parent-id id element ctx)))
+
+(defn clone!
+  "Clones `parent-id` given the element id `id`."
+  ([parent-id id] (clone! parent-id id nil nil))
+  ([parent-id id element] (clone! parent-id id element nil))
+  ([parent-id id element ctx]
+   (inherit! parent-id id element ctx)))
 
 (defn vector!
   "Register a vector element given element id `id`, vector element id `vector-of-element-id`, element
@@ -853,6 +914,7 @@
 (def diction-double-neg :diction/neg-double)
 
 (def diction-string :diction/string)
+(def diction-keyword :diction/keyword)
 (def diction-uuid :diction/uuid)
 (def diction-joda :diction/joda)
 
@@ -875,6 +937,7 @@
   (element! diction-double-neg {:type :double :min Double/MIN_VALUE :max 0.0})
 
   (element! diction-string {:type :string :min 0 :max 64})
+  (element! diction-keyword {:type :keyword :min 0 :max 64})
   (element! diction-uuid {:type :string :min 0 :max 36 :regex-pattern uuid-regex-pattern :meta {:label "UUID" :description "UUID String"}})
   (element! diction-joda {:type :joda :meta {:label "Joda Datetime" :description "Joda Date Time"}}))
 
@@ -895,6 +958,7 @@
 (def neg-double! (partial inherit! diction-double-neg))
 
 (def string! (partial inherit! diction-string))
+(def keyword! (partial inherit! diction-keyword))
 (def uuid! (partial inherit! diction-uuid))
 (def joda! (partial inherit! diction-joda))
 
@@ -1012,58 +1076,3 @@
   "Imports element entries from file `fn`."
   [fn]
   (import-entries! (edn/read-string (slurp fn))))
-
-;; ------------------------------------------------------------------------------------------------------
-;; dev / samples
-
-(defn sample-validation-rule
-  [value entry validation-rule ctx]
-  )
-
-(defn sample-annotation-rule
-  [value entry annotation-rule ctx]
-  value
-  )
-
-(defn sample-gen-f
-  [id entry]
-  (generate-random-uuid))
-
-(def sample-entry {:id :element-id
-                   :element {:required {}
-                             :optional {}
-                             :required-un {}
-                             :optional-un {}
-                             :min 9
-                             :max 9
-                             :type :may-be-string-int-float-class-etc
-                             :regex #"only for string"
-                             :enum #{}
-                             :valid-f sample-validation-rule
-                             :gen-f sample-gen-f}})
-
-(defn dev-init
-  []
-  (int! :answer {:meta {:label "Answer"
-                        :description "Answer to the descriptive questions."}})
-  (float! :tau {:meta {:label "Tau"
-                       :description "Tau is twice as good as pi."}})
-  (string! :foo {:meta {:label "Fooz"
-                        :description "Foo is not bar."}})
-  (int! :rating {:min 1 :max 10
-                 :meta {:label "Rating (1-10)"
-                        :description "1 = ;-(, 5 = :-|, 10 = ;-)"}})
-  (uuid! :id {:meta {:label "ID"
-                     :description "Universal uniqure identifer"}})
-  (joda! :when {:meta {:label "When"
-                       :description "When something happened."}})
-  (element! :wonk {:required-un [:foo]
-                   :optional      [:when]
-                   :meta          {:label "Wonk"
-                                   :description "Wonkable docable"}})
-  (element! :review {:required-un [:id :foo :wonk]
-                     :optional-un   [:rating]
-                     :meta          {:label "Review"
-                                     :description "Review of something"}}))
-
-; (dev-init)
