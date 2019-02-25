@@ -146,9 +146,9 @@
   ([x]
    (reset! decoration-rules x)))
 
-(defn decorate-element-value
+(defn decorate
   "Decorates element value `v` using decoration rules for element `element-id` with optional context map `ctx`."
-  ([element-id v] (decorate-element-value element-id v nil))
+  ([element-id v] (decorate element-id v nil))
   ([element-id v ctx]
    (if-let [entry (lookup element-id)]
      (reduce-kv (fn [a _ rule]

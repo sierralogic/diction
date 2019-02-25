@@ -362,6 +362,17 @@ nil
 ```
 ### Grooming
 
+Grooming allows for the removal of all unregistered fields/elements from diction
+elements.
+
+Although the grooming is most useful for maps/documents/entities, grooming a 
+values of a registered diction element should return the diction element value.
+
+If the groom returns `nil`, an error might have occurred and a full `explain`
+should be done on the value.
+
+If the groom returns a non-nil value, that is the groomed value for that element.
+
 ```clojure
 (groom ::item {:id "a5965cda-b465-448f-45fa-c90779c32508",
                :label "SaJ",
@@ -411,7 +422,48 @@ nil
                                  {:percent-upcharge 0.0734059122348183, :cost-basis :per-unit, :label "+7+t"}]}}
 
 ```
+### Decoration Rules
 
+Decoration rules may be defined and leveraged to centralize decoration/normalization of
+data shapes.
+
+Decoration is not aware of the validation and/or generation of the diction elements,
+and validation/generation is not aware of decorated element values.
+
+This means that if you decorate an element value and then try to validate and your
+validation does not take into account the decorations, then the validation might fail.
+
+```clojure
+
+(defn decoration-rule-calc-item-inventory-retail-worth
+  [v entry rule ctx]
+  (assoc v 
+         :inventory-retail-worth 
+         (* (get v :unit-count 0) (get v :unit-cost 0.0))))
+
+;; first argument is the diction element id for the decoration rule
+;; second argument is the decoration rule id
+;; third argument is the decoration rule function
+;; optional fourth function is the context of the decoration rule call
+(diction/decoration-rule! ::item 
+                          :calculate-item-inventory-retail-worth 
+                          decoration-rule-calc-item-inventory-retail-worth)
+
+;; decorate call is simply the diction element id and the diction element value
+(diction/decorate ::item {:id "ba2b6e0c-3091-4ff2-34b2-91483a4aaabf",
+                          :label "4ntL0R",
+                          :unit-count 80,
+                          :unit-cost 25.00,
+                          :badge :GmSh})
+;=>
+{:id "ba2b6e0c-3091-4ff2-34b2-91483a4aaabf",
+ :label "4ntL0R",
+ :unit-count 80,
+ :unit-cost 25.0,
+ :badge :GmSh,
+ :inventory-retail-worth 2000.0}
+
+```
 ## License
 
 Copyright © 2019 SierraLogic LLC

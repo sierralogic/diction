@@ -106,9 +106,19 @@
 
 (test-function :sum-long-double 999)
 
-;;; Groom -==============================================================
+;;; Decoration Rules -==============================================================
 
+;(defn sample-decoration-rule
+;  [value entry decoration-rule ctx]
+;  value
+;  )
 
-(def super-item (groom ::item (generate value)
+(defn decoration-rule-calc-item-inventory-retail-worth
+  [v entry rule ctx]
+  (assoc v :inventory-retail-worth (* (get v :unit-count 0) (get v :unit-cost 0.0))))
+
+(diction/decoration-rule! ::item
+                          :calculate-item-inventory-retail-worth
+                          decoration-rule-calc-item-inventory-retail-worth)
 
 
