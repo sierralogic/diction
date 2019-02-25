@@ -125,7 +125,9 @@ data definitions, import/export, and some other rich features for which `spec` w
            [::badge ::tags ::description ::additional-charges])
 
 ```
----
+
+### Generation
+
 ```clojure
 (generate ::item)
 ;=>
@@ -149,7 +151,9 @@ data definitions, import/export, and some other rich features for which `spec` w
                               :cost-basis :flat}]}}
 
 ```
----
+
+### Validation
+
 ```clojure
 (explain ::tag "t")
 ;=>
@@ -200,7 +204,26 @@ data definitions, import/export, and some other rich features for which `spec` w
   :parent-element-id [:diction.example/additional-charges-fee :diction.example/additional-charges :diction.example/item]}]
 
 ```
----
+
+### Validation Rules
+
+```clojure
+
+;;;; Rules ================================================================
+
+(defn rule-item-if-tags-then-badge-required
+  [value entry validation-rule context]
+  (when (:tags value)
+    (when-not (:badge value)
+      [{:id (:element-id validation-rule)
+        :rule-id (:id validation-rule)
+        :msg (str "Item must have a :badge field if the :tags field is present.")}])))
+
+(validation-rule! ::item ::rule-item-if-tags-then-badge rule-item-if-tags-then-badge-required)
+```
+
+Validation rules are only applied in the `explain-all` and `valid-all?` function calls.
+
 ```clojure
 (explain ::item {:id "da97d0b6-9c1d-495b-5367-c23da019dc01",
                  :label "EXJIJS",
@@ -221,10 +244,53 @@ data definitions, import/export, and some other rich features for which `spec` w
                                               :fee-upcharge 286.83015039087127,
                                               :cost-basis :flat}]}})
 ;=> 
-[{:msg "Item must have a :badge field if the :tags field is present."}]
+nil
 
+(explain-all ::item {:id "da97d0b6-9c1d-495b-5367-c23da019dc01",
+                     :label "EXJIJS",
+                     :unit-count 33,
+                     :unit-cost 75.0581280630676,
+                     :badgex :VHObB,
+                     :tags ["8dsdfasdfs" "y6n" "q4oH" "+ bb" "ny7LZO6" "ru" "F4vi8nNSo5o"],
+                     :description "19Ti7Ekh6wassjon3RJ=jmBhsX-bLygGAy6pcGl3F6KM3",
+                     :additional-charges {:fees [{:label "Ut",
+                                                  :fee-upcharge 193.5841860568779,
+                                                  :cost-basis :flat,
+                                                  :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+KYK-rQE=NFy-49Q7uIFGl gIaT24I7CXf6D1XCMlYQ9sVKX Z2r4u35cPvmMmMz44og=Gyirque9D=x=S7-Fd L"}
+                                                 {:label "fD7AXP",
+                                                  :fee-upcharge 350.57367256651224,
+                                                  :cost-basis :per-unit,  ;; bad cost-basis enum
+                                                  :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9luas2er167BnJRdO72 GjNIhvs07uPcNDwBr2azvf_cuVLQ3TEYmLRpT2z2U"}
+                                                 {:label "",
+                                                  :fee-upcharge 286.83015039087127,
+                                                  :cost-basis :flat}]}})
+;=>
+[{:id :diction.example/item,
+  :rule-id :diction.example/rule-item-if-tags-then-badge,
+  :msg "Item must have a :badge field if the :tags field is present."}]
+```
 
+### Generative Function Tests
 
+```clojure
+;;;; Functions ===========================================================
+
+(defn sum-long-and-double
+  [l d]
+  (str (+ l d)))
+
+(long! ::arg-long)
+(double! ::arg-double)
+(string! ::result-string)
+
+(function! :sum-long-and-double
+           sum-long-and-double
+           [::arg-long ::arg-double]
+           ::result-string)
+
+(test-function :sum-long-double 999)
+;=>
+nil
 ```
 
 ## License

@@ -1001,6 +1001,17 @@
   failure messages and info.  If no validation failure occurs, returns nil."
   [id v]
   (if-let [entry (lookup id)]
+    (let [sv (when-let [vf (get-in entry [:element :valid-f])] (vf v id entry))]
+      (when-not (empty? sv)
+        sv))
+    [{:id id :v v
+      :msg (str "Element '" id "' does not exist.")}]))
+
+(defn explain-all
+  "Explains validation failures for element `id` against element value `v` as a vector of maps with validation
+  failure messages and info.  If no validation failure occurs, returns nil."
+  [id v]
+  (if-let [entry (lookup id)]
     (let [sv (when-let [vf (get-in entry [:element :valid-f])] (vf v id entry))
           vrs (reduce-kv (fn [a _ rule]
                            (if-let [vrr ((:rule-f rule) v entry rule (merge (:ctx entry) (:ctx rule)))]
@@ -1018,6 +1029,11 @@
   "Determines if the element value `v` of element `id` is valid."
   [id v]
   (empty? (explain id v)))
+
+(defn valid-all?
+  "Determines if the element value `v` of element `id` is valid."
+  [id v]
+  (empty? (explain-all id v)))
 
 (initialize-diction-elements!)
 

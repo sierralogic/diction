@@ -1,7 +1,10 @@
 (ns diction.example
   (:require [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
+                                  explain-all valid-all? function! test-function test-all-functions
                                   lookup enum! inherit! clone! double! long! vector! keyword! generate-random-uuid]
              :as diction]))
+
+;;;; Elements ==============================================================
 
 ;; defines label as a string with a minimum length of 0 and max length of 8
 ;; w/ built-in validation and generation
@@ -54,28 +57,51 @@
            [::label ::percent-upcharge ::cost-basis]
            [::description])
 
-(vector! ::fees ::additional-charges-fee)
+(vector! ::fees-template ::additional-charges-fee)
 (vector! ::percents ::additional-charges-percent)
 
 ;; clones diction element fees-template to new diction element fees
 ;; w/ built-in validation and generation
-;(clone! ::fees-template ::fees)
+(clone! ::fees-template ::fees)
 
 (document! ::additional-charges
            []
            [::fees ::percents])
 
-;; defintes an item diction element with required un-namespaced
+;; defines an item diction element with required un-namespaced
 ;; ::id ... ::unit-cost, and optional un-namespaced ::badge ... ::additional-charges
 ;; note: the document allows for nest documents (like ::additional-charges)
 (document! ::item
            [::id ::label ::unit-count ::unit-cost]
            [::badge ::tags ::description ::additional-charges])
 
+;;;; Rules ================================================================
+
 (defn rule-item-if-tags-then-badge-required
-  [value entry validate-rule context]
+  [value entry validation-rule context]
   (when (:tags value)
     (when-not (:badge value)
-      [{:msg (str "Item must have a :badge field if the :tags field is present.")}])))
+      [{:id (:element-id validation-rule)
+        :rule-id (:id validation-rule)
+        :msg (str "Item must have a :badge field if the :tags field is present.")}])))
 
 (validation-rule! ::item ::rule-item-if-tags-then-badge rule-item-if-tags-then-badge-required)
+
+(explain-all ::item nil)
+
+;;;; Functions ===========================================================
+
+(defn sum-long-and-double
+  [l d]
+  (str (+ l d)))
+
+(long! ::arg-long)
+(double! ::arg-double)
+(string! ::result-string)
+
+(function! :sum-long-and-double
+           sum-long-and-double
+           [::arg-long ::arg-double]
+           ::result-string)
+
+(test-function :sum-long-double 999)
