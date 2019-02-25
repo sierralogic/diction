@@ -141,11 +141,11 @@ Current Clojure libraries/frameworks for data specifications, validation, and mo
  :additional-charges {:fees [{:label "Ut",
                               :fee-upcharge 193.5841860568779,
                               :cost-basis :flat,
-                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+KYK-rQE=NFy-49Q7uIFGl gIaT24I7CXf6D1XCMlYQ9sVKX Z2r4u35cPvmMmMz44og=Gyirque9D=x=S7-Fd L"}
+                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+"}
                              {:label "fD7AXP",
                               :fee-upcharge 350.57367256651224,
                               :cost-basis :per-unit,
-                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9luas2er167BnJRdO72 GjNIhvs07uPcNDwBr2azvf_cuVLQ3TEYmLRpT2z2U"}
+                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9lua"}
                              {:label "", 
                               :fee-upcharge 286.83015039087127, 
                               :cost-basis :flat}]}}
@@ -163,15 +163,18 @@ If the return is 'false' then the value is not valid/compliant.
 
 ```clojure
 (valid? ::element-id value) ; validates only against the diction element validation function
-(valid-all? ::element-id value) ; validates not only against the diction element validation function but with all associated validation rules for the element id
+(valid-all? ::element-id value) ; validates not only against the diction element validation 
+                                ; function but with all associated validation rules for the element id
 ```
 
 The `explain?` and `explain-all?` functions determine if the value is compliant
 against the diction element id provided.
 
 ```clojure
-(explain ::element-id value) ; validates and explains any failures only against the diction element validation function
-(explain-all ::element-id value) ; validates and explains any failures not only against the diction element validation function but with all associated validation rules for the element id
+(explain ::element-id value) ; validates and explains any failures only against the diction 
+                             ; element validation function
+(explain-all ::element-id value) ; validates and explains any failures not only against the diction element 
+                                 ; validation function but with all associated validation rules for the element id
 ```
 If the return is `nil` then the value is valid/compliant.
 
@@ -217,11 +220,11 @@ Otherwise, the return is a `vector` of failure maps with the following shape:
                  :additional-charges {:fees [{:label "Ut",
                                               :fee-upcharge 193.5841860568779,
                                               :cost-basis :flat,
-                                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+KYK-rQE=NFy-49Q7uIFGl gIaT24I7CXf6D1XCMlYQ9sVKX Z2r4u35cPvmMmMz44og=Gyirque9D=x=S7-Fd L"}
+                                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+"}
                                              {:label "fD7AXP",
                                               :fee-upcharge 350.57367256651224,
                                               :cost-basis :per-unit-bad-xxx,  ;; bad cost-basis enum
-                                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9luas2er167BnJRdO72 GjNIhvs07uPcNDwBr2azvf_cuVLQ3TEYmLRpT2z2U"}
+                                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9"}
                                              {:label "",
                                               :fee-upcharge 286.83015039087127,
                                               :cost-basis :flat}]}})
@@ -273,11 +276,11 @@ Validation rules are only applied in the `explain-all` and `valid-all?` function
                  :additional-charges {:fees [{:label "Ut",
                                               :fee-upcharge 193.5841860568779,
                                               :cost-basis :flat,
-                                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+KYK-rQE=NFy-49Q7uIFGl gIaT24I7CXf6D1XCMlYQ9sVKX Z2r4u35cPvmMmMz44og=Gyirque9D=x=S7-Fd L"}
+                                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+"}
                                              {:label "fD7AXP",
                                               :fee-upcharge 350.57367256651224,
                                               :cost-basis :per-unit,  ;; bad cost-basis enum
-                                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9luas2er167BnJRdO72 GjNIhvs07uPcNDwBr2azvf_cuVLQ3TEYmLRpT2z2U"}
+                                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9lua"}
                                              {:label "",
                                               :fee-upcharge 286.83015039087127,
                                               :cost-basis :flat}]}})
@@ -294,11 +297,11 @@ nil
                      :additional-charges {:fees [{:label "Ut",
                                                   :fee-upcharge 193.5841860568779,
                                                   :cost-basis :flat,
-                                                  :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+KYK-rQE=NFy-49Q7uIFGl gIaT24I7CXf6D1XCMlYQ9sVKX Z2r4u35cPvmMmMz44og=Gyirque9D=x=S7-Fd L"}
+                                                  :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+"}
                                                  {:label "fD7AXP",
                                                   :fee-upcharge 350.57367256651224,
                                                   :cost-basis :per-unit,  ;; bad cost-basis enum
-                                                  :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9luas2er167BnJRdO72 GjNIhvs07uPcNDwBr2azvf_cuVLQ3TEYmLRpT2z2U"}
+                                                  :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9lua"}
                                                  {:label "",
                                                   :fee-upcharge 286.83015039087127,
                                                   :cost-basis :flat}]}})
@@ -316,7 +319,7 @@ test generatively leveraging the diction data elements.
 ```clojure
 (function! :function-id 
            function 
-           [:diction-element-id-arg1 :diction-element-id-arg2 :diction-element-id-argn]
+           [:diction-element-id-arg1 :id-arg2 :id-argn]
            :diction-element-id-result)
 ```
 
@@ -339,7 +342,8 @@ Otherwise, a `vector` of failed message maps.
 (string! ::result-string)
 
 ;; registers function for generative testing 
-;; (testing if generated element parameters result in expected diction element type)
+;; (testing if generated element parameters result in expected diction 
+;; element type)
 (function! :sum-long-and-double
            sum-long-and-double
            [::arg-long ::arg-double]
@@ -350,10 +354,62 @@ Otherwise, a `vector` of failed message maps.
 ;=>
 nil
 
-;; tests function :sum-long-double generatively default number of times (100)
+;; tests function :sum-long-double generatively default 
+;; number of times (100)
 (test-function :sum-long-double)
 ;=>
 nil
+```
+### Grooming
+
+```clojure
+(groom ::item {:id "a5965cda-b465-448f-45fa-c90779c32508",
+               :label "SaJ",
+               :unit-count 393,
+               :unit-cost 52.968335308020826,
+               :badge :OEEbI,
+               :foo :bar ; should be groomed away
+               :tags ["t1"],
+               :description "MO6FX5CIIeadb_6 xNCSKBRSsQ82obEi",
+               :additional-charges {:fees [{:label "_5LkD1", 
+                                            :boo :meh ; should be groomed away
+                                            :fee-upcharge 498.3408668249411, :cost-basis :per-unit}
+                                           {:label "MLLcqP", :fee-upcharge 65.00989414713105, :cost-basis :flat}
+                                           {:label "_UL", 
+                                            :foo :baz ; should be groomed away 
+                                            :fee-upcharge 778.3347611327353, :cost-basis :flat}
+                                           {:label "",
+                                            :fee-upcharge 300.638425007598,
+                                            :cost-basis :flat,
+                                            :description "tj7YXJq_4qg_k4ceKdfKi_mE9FSvDsdhVSXBUXQTMY dcsqZ2OD6Ilti-J s7FezsRVSYsqAiAuQVFp=1Ily1G_eEB2Vb6yBEOkeL1gjH37QqfX0j=s3F657qaN9hDZ"}],
+                                    :percents [{:label "orl",
+                                                :percent-upcharge 0.5618874139197575,
+                                                :meh :bah ; should be groomed away
+                                                :cost-basis :per-unit,
+                                                :description "Ep2Csq757fOPsr1vV-pD21663Aj2tH j58x0izg6Y25"}
+                                               {:label "+7+t", :percent-upcharge 0.0734059122348183, :cost-basis :per-unit}]}}
+       )
+;=>
+{:description "MO6FX5CIIeadb_6 xNCSKBRSsQ82obEi",
+ :tags ["t1"],
+ :label "SaJ",
+ :id "a5965cda-b465-448f-45fa-c90779c32508",
+ :unit-cost 52.968335308020826,
+ :unit-count 393,
+ :badge :OEEbI,
+ :additional-charges {:fees [{:fee-upcharge 498.3408668249411, :cost-basis :per-unit, :label "_5LkD1"}
+                             {:fee-upcharge 65.00989414713105, :cost-basis :flat, :label "MLLcqP"}
+                             {:fee-upcharge 778.3347611327353, :cost-basis :flat, :label "_UL"}
+                             {:description "tj7YXJq_4qg_k4ceKdfKi_mE9FSvDsdhVSXBUXQTMY dcsqZ2OD6Ilti-J s7FezsRVSYsqAiAuQVFp=1Ily1G_eEB2Vb6yBEOkeL1gjH37QqfX0j=s3F657qaN9hDZ",
+                              :fee-upcharge 300.638425007598,
+                              :cost-basis :flat,
+                              :label ""}],
+                      :percents [{:description "Ep2Csq757fOPsr1vV-pD21663Aj2tH j58x0izg6Y25",
+                                  :percent-upcharge 0.5618874139197575,
+                                  :cost-basis :per-unit,
+                                  :label "orl"}
+                                 {:percent-upcharge 0.0734059122348183, :cost-basis :per-unit, :label "+7+t"}]}}
+
 ```
 
 ## License

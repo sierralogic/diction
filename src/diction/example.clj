@@ -1,10 +1,10 @@
 (ns diction.example
   (:require [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
-                                  explain-all valid-all? function! test-function test-all-functions
+                                  explain-all groom valid-all? groom function! test-function test-all-functions
                                   lookup enum! inherit! clone! double! long! vector! keyword! generate-random-uuid]
              :as diction]))
 
-;;;; Elements ==============================================================
+;;; Elements ==============================================================
 
 ;; defines label as a string with a minimum length of 0 and max length of 8
 ;; w/ built-in validation and generation
@@ -18,7 +18,7 @@
 ;; w/ built-in validation and generation
 (double! ::unit-cost {:min 0.01 :max 99.99})
 
-(string! ::tag {:min 2 :max 12})
+(string! ::tag {:min 2 :max 6})
 
 ;; defines tags as a vector of diction element `::tag` with min item count of 0 and max of 64.
 ;; w/ built-in validation and generation
@@ -75,7 +75,7 @@
            [::id ::label ::unit-count ::unit-cost]
            [::badge ::tags ::description ::additional-charges])
 
-;;;; Rules ================================================================
+;;; Rules ================================================================
 
 (defn rule-item-if-tags-then-badge-required
   [value entry validation-rule context]
@@ -89,7 +89,7 @@
 
 (explain-all ::item nil)
 
-;;;; Functions ===========================================================
+;;; Functions ===========================================================
 
 (defn sum-long-and-double
   [l d]
@@ -105,3 +105,10 @@
            ::result-string)
 
 (test-function :sum-long-double 999)
+
+;;; Groom -==============================================================
+
+
+(def super-item (groom ::item (generate value)
+
+
