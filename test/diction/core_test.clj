@@ -279,3 +279,17 @@
     (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3} :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}]} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}] :foo :bar :nested-doc {:ans 44 :tau 2.3} :v [1 2 3]}))))
 
   )
+
+(defn decorate-rule-add-ans-and-tau
+  [v entry rule ctx]
+  (assoc v :sum-ans-tau (+ (get v :tau 0.0) (get v :ans 0))))
+
+(deftest test-decoration
+  (testing "when elements are decorated"
+    (long! :test-dec/ans)
+    (is (= 42 (decorate :test-dec/ans 42)))
+    (double! :test-dec/tau)
+    (is (= 6.28 (decorate :test-dec/tau 6.28)))
+    (document! :test-dec/doc [:test-dec/ans] [:test-dec/tau])
+    (decoration-rule! :test-dec/doc :test-dec/sum-ans-tau decorate-rule-add-ans-and-tau)
+    (is (= {:tau 6.28 :ans 42 :sum-ans-tau 48.28} (decorate :test-dec/doc {:tau 6.28 :ans 42})))))
