@@ -575,7 +575,7 @@
         :msg (str "Failed '" id "': value '" v "' is less than min. (min=" min ")")}]
       (when-not (if max (<= v max) true)
         [{:id id :entry entry :v v
-          :msg (str "Failed '" id "': value '" v "' has is more than max. (max=" max ")")}]))))
+          :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
 (defn validate-long
   "Validates that a long number value `v` is valid given the optional minimum `min`, maximum `max`, element id
@@ -590,7 +590,7 @@
         :msg (str "Failed '" id "': value '" v "' is less than min. (min=" min ")")}]
       (when-not (if max (<= v max) true)
         [{:id id :entry entry :v v
-          :msg (str "Failed '" id "': value '" v "' has is more than max. (max=" max ")")}]))))
+          :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
 (defn validate-float
   "Validates that a float number value `v` is valid given the optional minimum `min`, maximum `max`, element id
@@ -605,7 +605,7 @@
         :msg (str "Failed '" id "': value '" v "' is less than min. (min=" min ")")}]
       (when-not (if max (<= v max) true)
         [{:id id :entry entry :v v
-          :msg (str "Failed '" id "': value '" v "' has is more than max. (max=" max ")")}]))))
+          :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
 (defn validate-double
   "Validates that a double number value `v` is valid given the optional minimum `min`, maximum `max`, element id
@@ -620,7 +620,7 @@
         :msg (str "Failed '" id "': value '" v "' is less than min. (min=" min ")")}]
       (when-not (if max (<= v max) true)
         [{:id id :entry entry :v v
-          :msg (str "Failed '" id "': value '" v "' has is more than max. (max=" max ")")}]))))
+          :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
 (defn explain-nested-elements
   "Explain nested elements."
@@ -640,7 +640,8 @@
                  (concat a [{:required-element-id element-id
                              :parent-element-id parent-element-id
                              :nested-element-id nested-id
-                             :msg (str "Failed. Missing required element id '" element-id "'.")}]))))
+                             :msg (str "Failed. Missing required element id '" element-id "'.")}])
+                 a)))
            nil
            element-ids)))
 
@@ -874,11 +875,14 @@
    (element! parent-id id element ctx)))
 
 (defn clone!
-  "Clones `parent-id` given the element id `id`."
-  ([parent-id id] (clone! parent-id id nil nil))
-  ([parent-id id element] (clone! parent-id id element nil))
-  ([parent-id id element ctx]
-   (inherit! parent-id id element ctx)))
+  "Clones `parent-id` to the new element id `id`."
+  [parent-id id]
+  (when-let [p (lookup parent-id)]
+    (let [entry (-> p
+                    (assoc :id id)
+                    (assoc-in [:element :id] id))]
+      (swap! dictionary assoc id entry)
+      entry)))
 
 (defn vector!
   "Register a vector element given element id `id`, vector element id `vector-of-element-id`, element
@@ -957,7 +961,7 @@
   (element! diction-double-neg {:type :double :min Double/MIN_VALUE :max 0.0})
 
   (element! diction-string {:type :string :min 0 :max 64})
-  (element! diction-keyword {:type :keyword :min 0 :max 64})
+  (element! diction-keyword {:type :keyword :min 1 :max 64})
   (element! diction-uuid {:type :string :min 0 :max 36 :regex-pattern uuid-regex-pattern :meta {:label "UUID" :description "UUID String"}})
   (element! diction-joda {:type :joda :meta {:label "Joda Datetime" :description "Joda Date Time"}}))
 
