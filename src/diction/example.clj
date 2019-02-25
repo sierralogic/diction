@@ -117,8 +117,22 @@
   [v entry rule ctx]
   (assoc v :inventory-retail-worth (* (get v :unit-count 0) (get v :unit-cost 0.0))))
 
+(defn decoration-rule-inventory-str
+  [v entry rule ctx]
+  (assoc v :inventory-str (str "There are "
+                               (get v :unit-count "unk")
+                               " "
+                               (get v :label "unk")
+                               " item(s) [" (get v :id "-") "] "
+                               "with an inventory retail value of "
+                               (* (get v :unit-count 0) (get v :unit-cost 0.0))
+                               " USD.")))
+
 (diction/decoration-rule! ::item
                           :calculate-item-inventory-retail-worth
                           decoration-rule-calc-item-inventory-retail-worth)
 
+(diction/decoration-rule! ::item
+                          :item-inventory-str
+                          decoration-rule-inventory-str)
 

@@ -433,6 +433,8 @@ and validation/generation is not aware of decorated element values.
 This means that if you decorate an element value and then try to validate and your
 validation does not take into account the decorations, then the validation might fail.
 
+Note that a diction element may have zero or many decoration rules.
+
 ```clojure
 
 (defn decoration-rule-calc-item-inventory-retail-worth
@@ -441,13 +443,30 @@ validation does not take into account the decorations, then the validation might
          :inventory-retail-worth 
          (* (get v :unit-count 0) (get v :unit-cost 0.0))))
 
+(defn decoration-rule-inventory-str
+  [v entry rule ctx]
+  (assoc v :inventory-str (str "There are "
+                               (get v :unit-count "unk")
+                               " "
+                               (get v :label "unk")
+                               " item(s) [" (get v :id "-") "] "
+                               "with an inventory retail value of "
+                               (* (get v :unit-count 0) (get v :unit-cost 0.0))
+                               " USD.")))
+
 ;; first argument is the diction element id for the decoration rule
 ;; second argument is the decoration rule id
 ;; third argument is the decoration rule function
 ;; optional fourth function is the context of the decoration rule call
-(diction/decoration-rule! ::item 
-                          :calculate-item-inventory-retail-worth 
+(diction/decoration-rule! ::item
+                          :calculate-item-inventory-retail-worth
                           decoration-rule-calc-item-inventory-retail-worth)
+
+(diction/decoration-rule! ::item
+                          :item-inventory-str
+                          decoration-rule-inventory-str)
+
+
 
 ;; decorate call is simply the diction element id and the diction element value
 (diction/decorate ::item {:id "ba2b6e0c-3091-4ff2-34b2-91483a4aaabf",
@@ -461,7 +480,8 @@ validation does not take into account the decorations, then the validation might
  :unit-count 80,
  :unit-cost 25.0,
  :badge :GmSh,
- :inventory-retail-worth 2000.0}
+ :inventory-retail-worth 2000.0,
+ :inventory-str "There are 80 4ntL0R item(s) [ba2b6e0c-3091-4ff2-34b2-91483a4aaabf] with an inventory retail value of 2000.0 USD."}
 
 ```
 ## License
