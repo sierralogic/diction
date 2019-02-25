@@ -245,3 +245,37 @@
     )
 
   )
+
+(deftest test-groom
+
+  (testing "when grooming basics are asserted"
+    (long! :test-groom/ans)
+    (is (= 42 (groom :test-groom/ans 42)))
+    (double! :test-groom/tau)
+    (is (= 6.28 (groom :test-groom/tau 6.28)))
+    (document! :test-groom/doc [:test-groom/ans] [:test-groom/tau])
+    (is (= {:ans 99 :tau 9.9} (groom :test-groom/doc {:ans 99 :tau 9.9})))
+    (is (= {:ans 99 :tau 9.9} (groom :test-groom/doc {:ans 99 :tau 9.9 :foo :bar})))
+    (is (= {:ans 99 :tau 9.9} (groom :test-groom/doc {:ans 99 :tau 9.9 :foo :bar :v [1 2 3]}))))
+
+
+  (testing "when grooming nest maps"
+    (long! :test-groom/ans)
+    (is (= 42 (groom :test-groom/ans 42)))
+    (double! :test-groom/tau)
+    (is (= 6.28 (groom :test-groom/tau 6.28)))
+    (document! :test-groom/nested-doc [:test-groom/ans] [:test-groom/tau])
+    (document! :test-groom/vectored-doc [:test-groom/ans] [:test-groom/tau])
+
+    (vector! :test-groom/vdocs :test-groom/vectored-doc {:min 1 :max 3})
+
+    (document! :test-groom/parent-doc [:test-groom/ans :test-groom/nested-doc] [:test-groom/tau :test-groom/vdocs])
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3}} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3}})))
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3}} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :foo :bar :nested-doc {:ans 44 :tau 2.3}})))
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3}} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :foo :bar :nested-doc {:ans 44 :tau 2.3} :v [1 2 3]})))
+
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3} :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}]} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}] :nested-doc {:ans 44 :tau 2.3}})))
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3} :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}]} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}] :foo :bar :nested-doc {:ans 44 :tau 2.3}})))
+    (is (= {:ans 99 :tau 9.9 :nested-doc {:ans 44 :tau 2.3} :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}]} (groom :test-groom/parent-doc {:ans 99 :tau 9.9 :vdocs [{:ans 4 :tau 42.3} {:ans 44 :tau 2.3}] :foo :bar :nested-doc {:ans 44 :tau 2.3} :v [1 2 3]}))))
+
+  )

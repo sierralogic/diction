@@ -26,8 +26,7 @@
   [id]
   (get @dictionary id))
 
-;; ==========================================================================================
-;; functions
+;;; Generative Function Testing ==============================================================
 
 (def functions (atom nil))
 
@@ -85,8 +84,7 @@
            nil
            (keys @functions))))
 
-;; ==========================================================================================
-;; validation
+;;; Validation Rules =======================================================================
 
 (def validation-rules (atom nil))
 
@@ -117,8 +115,7 @@
   ([x]
    (reset! validation-rules x)))
 
-;; ==========================================================================================
-;; decoration
+;;; Decoration Rules ===========================================================================
 
 (def decoration-rules (atom nil))
 
@@ -162,8 +159,7 @@
                 (get @decoration-rules element-id))
      v)))
 
-;; -----------------------------------------------------------------------------------
-;; utils
+;;; Utilities --------------------------------------------------------------------
 
 (def joda-class (class (t/now)))
 (def years-millis (* 365 24 60 60 1000))
@@ -247,7 +243,10 @@
   []
   (odd? (System/currentTimeMillis)))
 
-(def document-keys #{:required :required-un :optional :optional-un})
+(def document-keys-ns #{:required :optional})
+(def document-keys-un #{:required-un :optional-un})
+
+(def document-keys (set/union document-keys-ns document-keys-un))
 
 (defn document?
   "Determines if `m` element is a document/map."
@@ -260,8 +259,7 @@
   [m]
   (if (document? m) :documents :fields))
 
-;; -------------------------------------------------------------------------------------
-;; generators
+;;; Generators -----------------------------------------------------------------------
 
 (def uuid-regex-pattern "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
 (def uuid-regex (re-pattern uuid-regex-pattern))
@@ -475,8 +473,7 @@
         (generate-nested-elements (:optional m) false true)
         (generate-nested-elements (:optional-un m) true true)))))
 
-;; -------------------------------------------------------------------------------------
-;; validators
+;;; Validators --------------------------------------------------------------------------------
 
 (defn validate-enum
   "Validates an enum type set `enum-s` against element value `v` given element id `id` and entry `entry` for better
@@ -662,8 +659,7 @@
     [{:id id :v v :parent-element-id [id] :entry entry
       :msg (str "Failed. Value '" v "' is not a map.")}]))
 
-;; -------------------------------------------------------------------------------------
-;; generate element entries
+;;; Normalize Element Entry Types ------------------------------------------------------------------
 
 (defn wrap-gen-f
   "Wraps generatior function `gen-f` with a function that ignores the element id `id` and element entry `entry` trailing
@@ -672,8 +668,6 @@
   [gen-f]
   (fn [_ _]
     (gen-f)))
-
-;; ---
 
 (defn normalize-enum
   "Normalizes the enumeration entry type elements (if necessary) given element map `m`.  If not an enum type, passhtru
@@ -772,8 +766,8 @@
     m))
 
 (defn normalize-vector
-  "Normalizes the vector-of entry type elements (if necessary) given element map `m`.  If not a vector-of type, passhtru
-  the element map `m`."
+  "Normalizes the vector-of entry type elements (if necessary) given element map `m`.  If not a vector-of type,
+  passhtru the element map `m`."
   [m]
   (if-let [vof (:vector-of m)]
     (assoc m :gen-f (or (:gen-f m)
@@ -785,6 +779,12 @@
                           (partial validate-vector-of vof (:min m) (:max m))))
     m))
 
+(defn capture-un-fields
+  [unf]
+  (reduce #(assoc % (-> %2 name keyword) %2)
+          nil
+          unf))
+
 (defn normalize-map
   "Normalizes the required-optional/map entry type elements (if necessary) given entry map `m`.  If not a required-optiona/map type,
   passhtru the entry map `m`."
@@ -792,10 +792,14 @@
   (let [required-element-ids (:required m)
         required-element-ids-un (:required-un m)
         optional-element-ids (:optional m)
-        optional-element-ids-un (:optional-un m)]
+        optional-element-ids-un (:optional-un m)
+        req-un-m (capture-un-fields required-element-ids-un)
+        opt-un-m (capture-un-fields optional-element-ids-un)]
     (if (or required-element-ids required-element-ids-un optional-element-ids optional-element-ids-un)
       (assoc m :gen-f (wrap-gen-f (partial generate-random-map (:id m)))
                :type :document
+               :required-un-m req-un-m
+               :optional-un-m opt-un-m
                :valid-f (partial explain-map
                                  (:id m)
                                  required-element-ids
@@ -804,12 +808,21 @@
                                  optional-element-ids-un))
       m)))
 
-(defn normalize-element
-  "Generates entry settings for element id `id` given the original element map `original-element` (from the call argument),
-  merged element from parent and original element `merged-element``, and optional `parent-id` and context map `ctx`."
-  [parent-id id original-element ctx merged-element]
-  (let [normalized-element (-> merged-element
-                               normalize-enum
+(def type-normalizers (atom nil))
+
+(defn type-normalizer!
+  "Register register normalizer function `normalizer-f`."
+  [normalizer-f]
+  (swap! type-normalizers conj normalizer-f))
+
+(defn type-normalizers!
+  "Registers register normalizer fuction `normalizer-fs`."
+  [normalizer-fs]
+  (reduce #(conj (or % []) (type-normalizer! %2))
+          nil
+          normalizer-fs))
+
+(def default-type-normalizers [normalize-enum
                                normalize-int
                                normalize-long
                                normalize-float
@@ -819,8 +832,19 @@
                                normalize-joda
                                normalize-keyword
                                normalize-vector
-                               normalize-map)]
-    normalized-element))
+                               normalize-map])
+
+(type-normalizers! default-type-normalizers) ; registers default type normalizer functions
+
+(defn normalize-element
+  "Generates entry settings for element id `id` given the original element map `original-element` (from the call argument),
+  merged element from parent and original element `merged-element``, and optional `parent-id` and context map `ctx`."
+  [parent-id id original-element ctx merged-element]
+  (reduce #(apply %2 [%])
+          merged-element
+          @type-normalizers))
+
+;;; Register Element Entries ------------------------------------------------------------------------
 
 (defn element!
   "Registers element with id `id`, element map `element` with optional element context `ctx and parent element id `parent-id`.  The
@@ -908,7 +932,34 @@
                     (when opt-un {:optional-un opt-un}))
              ctx)))
 
+(defn document-type?
+  "Determines if diction `entry` is document type or not."
+  [entry]
+  (let [t (get-in entry [:element :type])]
+    (or (= t :document) (= t :map) (= t :entity))))
+
+
+(defn document-field-element-ids
+  "Generates the field elements for document element `id` for both
+  namespaced and unqualified fields."
+  [id]
+  (when-let [entry (lookup id)]
+    (when (document-type? entry)
+      (let [flds (reduce #(if-let [ks (get-in entry [:element %2])]
+                            (concat % ks)
+                            %)
+                         nil
+                         document-keys-ns)
+            flds-un (reduce #(if-let [ks (get-in entry [:element %2])]
+                               (concat % (map (fn [x] (-> x name keyword)) ks))
+                               %)
+                            nil
+                            document-keys-un)]
+        (when-not (and (empty? flds) (empty? flds-un))
+          (into #{} (concat flds flds-un)))))))
+
 (def map! document!)
+(def entity! document!)
 
 (defn enum!
   "Register an enum element given element id `id`, enum set/list/vector `enums`, element
@@ -918,8 +969,7 @@
   ([id enums element ctx]
    (element! id (merge {:enum enums} element) ctx)))
 
-;; ------------------------------------------------------------
-;; base elements
+;;; Base Elements ------------------------------------------------------------
 
 (def diction-int :diction/int)
 (def diction-int-pos :diction/pos-int)
@@ -986,8 +1036,7 @@
 (def uuid! (partial inherit! diction-uuid))
 (def joda! (partial inherit! diction-joda))
 
-;; --------------------------------------------------------------------------------------------------
-;; element functions
+;;;; Element Functions --------------------------------------------------------------------------
 
 (defn generate
   "Generates a valid value of element id `id`."
@@ -1035,10 +1084,55 @@
   [id v]
   (empty? (explain-all id v)))
 
+(declare groom)
+
+(defn groom-vector
+  ([parent-id id v] (groom-vector parent-id id v nil))
+  ([parent-id id v ctx]
+   (when-let [entry (lookup id)]
+     (when-let [vot-id (get-in entry [:element :vector-of])]
+       (reduce #(conj (or % []) (groom id vot-id %2 nil))
+               nil
+               v)))))
+
+(defn field-element-id
+  "Returns the namespaced (if available) field id for document element `id` given
+  a field id `id`."
+  [id fld-id]
+  (if (namespace fld-id)
+    fld-id
+    (if-let [entry (lookup id)]
+      (or (get-in entry [:element :required-un-m fld-id])
+          (get-in entry [:element :optional-un-m fld-id])
+          fld-id)
+      fld-id)))
+
+(defn groom
+  "Grooms the `value` of element `id` to align with only the registered diction elements.
+  If the `value` is a map, then groom acts recursively like `select-keys` to groom unregistered
+  keys and only passthru registered diction element keys (required and optional)."
+  ([id v] (groom nil id v nil))
+  ([id v ctx] (groom nil id v nil))
+  ([parent-id id v ctx]
+   (when-let [entry (lookup id)]
+     (when (valid? id v)
+       (if (map? v)
+         (let [flds (document-field-element-ids id)]
+           (reduce #(if-let [nv (get v %2)]
+                      (let [qfld (field-element-id id %2)]
+                        (if-let [entry (lookup qfld)]
+                          (assoc % %2 (groom id qfld nv ctx))
+                          (assoc % %2 nv)))
+                      %)
+                   nil
+                   flds))
+         (if (vls? v)
+           (groom-vector parent-id id v)
+           v))))))
+
 (initialize-diction-elements!)
 
-;; -=================================================================================
-;; data dictionary
+;;; Data Dictionary ================================================================
 
 (defn filter-diction-elements
   "Filters out diction elements given element `x`."
@@ -1079,8 +1173,7 @@
            fds
            {:elements (vec sorted-elements)})))
 
-;; =====================================================================================
-;; import / export
+;;; Import / Export ========================================================
 
 (def exclude-export-keys [:gen-f :valid-f :regex])
 
