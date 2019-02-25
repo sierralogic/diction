@@ -4,12 +4,11 @@ Diction is a Clojure library similar to spec functionality with added functional
 
 ## Status of Diction
 
-Diction is currently headed for first release some time in end Q1/start Q2 2019.
+Diction is currently slated for first public release end-Q1/start-Q2 2019.
 
-## Rationale
-
-Diction supports most of the functionality of `spec` but with with built-in types, convenience functions, off-line
-data definitions, import/export, and some other rich features for which `spec` was never really designed/intended for.
+Current Clojure libraries/frameworks for data specifications, validation, and more:
+- `spec` : https://clojure.org/guides/spec
+- `prismatic/schema` : https://github.com/plumatic/schema
  
 ## Features
 
@@ -52,7 +51,7 @@ data definitions, import/export, and some other rich features for which `spec` w
 - predicate logic in declarative diction element definitions (simliar to `spec`)
 - rich meta data handling for compliance and data element awareness
 
-## Example Code
+## Quick Start Example Code
 
 ```clojure
 ;; defines label as a string with a minimum length of 0 and max length of 8
@@ -123,8 +122,9 @@ data definitions, import/export, and some other rich features for which `spec` w
 (document! ::item
            [::id ::label ::unit-count ::unit-cost]
            [::badge ::tags ::description ::additional-charges])
-
 ```
+
+## Working with Diction
 
 ### Generation
 
@@ -152,7 +152,41 @@ data definitions, import/export, and some other rich features for which `spec` w
 
 ```
 
-### Validation
+### Validation / Explanation
+
+The `valid?` and `valid-all?` predicate functions determine if the value is compliant
+against the diction element id provided.
+
+If the return is `true` then the value is valid/compliant.
+
+If the return is 'false' then the value is not valid/compliant.
+
+```clojure
+(valid? ::element-id value) ; validates only against the diction element validation function
+(valid-all? ::element-id value) ; validates not only against the diction element validation function but with all associated validation rules for the element id
+```
+
+The `explain?` and `explain-all?` functions determine if the value is compliant
+against the diction element id provided.
+
+```clojure
+(explain ::element-id value) ; validates and explains any failures only against the diction element validation function
+(explain-all ::element-id value) ; validates and explains any failures not only against the diction element validation function but with all associated validation rules for the element id
+```
+If the return is `nil` then the value is valid/compliant.
+
+Otherwise, the return is a `vector` of failure maps with the following shape:
+
+```clojure
+[
+ {:id :id-of-the-diction-element-tested-against
+  :v :value-tested
+  :msg "Failure message that should be descriptive to aid in troubleshooting."}
+ {:id :id-of-the-diction-element-tested-against
+  :v :value-tested
+  :msg "Failure message that should be descriptive to aid in troubleshooting."}
+]
+```
 
 ```clojure
 (explain ::tag "t")
@@ -211,6 +245,10 @@ data definitions, import/export, and some other rich features for which `spec` w
 
 ;;;; Rules ================================================================
 
+;; defines a rule function that validates that if an item has a :tags field
+;; then if also must have a :badge field
+;; NOTE: dicton element generators are NOT compliant with external validation rule
+;;       functions
 (defn rule-item-if-tags-then-badge-required
   [value entry validation-rule context]
   (when (:tags value)
@@ -272,7 +310,24 @@ nil
 
 ### Generative Function Tests
 
+Generative function testing uses `function!` to register functions to 
+test generatively leveraging the diction data elements.
+
 ```clojure
+(function! :function-id 
+           function 
+           [:diction-element-id-arg1 :diction-element-id-arg2 :diction-element-id-argn]
+           :diction-element-id-result)
+```
+
+The `test-function` and `test-all-functions` are used to run generatively function testing.
+
+If the `test-function` or `test-all-functions` all pass, then `nil` is returned.
+
+Otherwise, a `vector` of failed message maps.
+
+```clojure
+
 ;;;; Functions ===========================================================
 
 (defn sum-long-and-double
@@ -283,12 +338,20 @@ nil
 (double! ::arg-double)
 (string! ::result-string)
 
+;; registers function for generative testing 
+;; (testing if generated element parameters result in expected diction element type)
 (function! :sum-long-and-double
            sum-long-and-double
            [::arg-long ::arg-double]
            ::result-string)
 
+;; tests function :sum-long-double generatively 999 times
 (test-function :sum-long-double 999)
+;=>
+nil
+
+;; tests function :sum-long-double generatively default number of times (100)
+(test-function :sum-long-double)
 ;=>
 nil
 ```
