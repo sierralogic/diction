@@ -293,3 +293,32 @@
     (document! :test-dec/doc [:test-dec/ans] [:test-dec/tau])
     (decoration-rule! :test-dec/doc :test-dec/sum-ans-tau decorate-rule-add-ans-and-tau)
     (is (= {:tau 6.28 :ans 42 :sum-ans-tau 48.28} (decorate :test-dec/doc {:tau 6.28 :ans 42})))))
+
+
+(deftest test-metadata-query
+  (testing "when metadata is queried"
+    (int! :test-metadata-q/ans {:meta {:pii true :rank 3 :label "answer" :foo "bars"}})
+    (string! :test-metadata-q/mercy {:meta {:pii true :rank 2 :label "merciful" :desc "what?"}})
+    (string! :test-metadata-q/wonk {:meta {:pii false :rank 3 :label "wonky"}})
+    (double! :test-metadata-q/tau {:meta {:label "tau vs. pi" :rank 4 :pii true :foo false}})
+
+    (is (= (count (meta-query {:query {:pii true}})) 3))
+
+    (let [r (meta-query {:query {:pii true} :mask [:pii :label]})]
+      (is (= (count r) 3))
+      (is (= (count (first r)) 3)))
+
+    (let [r (meta-query {:mask [:label :pii :rank] :query {:pii true :rank #(> % 2)}})]
+      (is (= (count r) 2))
+      (is (= (into #{} (map :id r)) #{:test-metadata-q/tau :test-metadata-q/ans})))
+
+
+    (let [r (meta-query {:mask [:label :pii :rank :foo] :query-f #(some? (:foo %))})]
+      (is (= (count r) 2))
+      (is (= (into #{} (map :foo r)) #{"bars" false})))
+
+    (let [r (meta-query {:mask [:label :pii :rank :foo] :query {:pii true :rank #(> % 3)} :query-f #(some? (:foo %))})]
+      (is (= (count r) 1))
+      (is (= (into #{} (map :label r)) #{"tau vs. pi"})))
+
+    ))

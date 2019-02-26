@@ -4,6 +4,7 @@
             [clojure.edn :as edn]
             [clojure.pprint :as pp]
             [clojure.set :as set]
+            [clojure.test :refer [function?]]
             [clojure.test.check.generators :as gen]
             [miner.strgen :as sg])
   (:import (java.util UUID Random)
@@ -1134,7 +1135,7 @@
 
 ;;; Data Dictionary ================================================================
 
-(defn filter-diction-elements
+(defn filter-out-diction-elements
   "Filters out diction elements given element `x`."
   [x]
   (if-let [id (:id x)]
@@ -1165,7 +1166,7 @@
   []
   (let [sorted-elements (->> @dictionary
                              vals
-                             (filter filter-diction-elements)
+                             (filter filter-out-diction-elements)
                              (sort-by :id))
         fds (group-by document-or-field sorted-elements)
         ndx (mapv index-entry sorted-elements)]
@@ -1191,7 +1192,7 @@
           nil
           (->> @dictionary
                vals
-               (filter filter-diction-elements))))
+               (filter filter-out-diction-elements))))
 
 (defn export-entries-to-file!
   "Exports element entries to file `fn`."
@@ -1209,3 +1210,56 @@
   "Imports element entries from file `fn`."
   [fn]
   (import-entries! (edn/read-string (slurp fn))))
+
+;;; Metadata ======================================================
+
+(defn split-meta-query
+  "Splits query map `q` into functions and non-functions based on
+  values.  Function kvs are in {true : {}} and non-function kvs are in {false : {}}."
+  [q]
+  (reduce-kv #(update % (function? %3) (fn [x] (assoc x %2 %3)))
+             nil
+             q))
+
+(defn meta-query
+  "Query diction element metadata with map `meta-query-map` and keys
+  `element-ids` (optional) : subset of element ids to search;
+  `query` (required) : query map that will simple try to match the element meta data map"
+  [{:keys [element-ids query query-f mask] :as meta-query-map}]
+  (when-not (and (empty? query) (nil? query-f))
+    (reduce #(if-let [entry (lookup %2)]
+               (if-let [meta (get-in entry [:element :meta])]
+                 (let [split-q (split-meta-query query)
+                       query-lits (get split-q false)
+                       query-fs (get split-q true)
+                       qlks (keys query-lits)]
+                   (if (and (or (empty? query-lits)
+                                (= query-lits (select-keys meta qlks)))
+                            (or (empty? query-fs)
+                                (reduce-kv (fn [a k f]
+                                             (if (try
+                                                   (f (get meta k))
+                                                   (catch Exception _
+                                                     false))
+                                               a
+                                               (reduced false)))
+                                           true
+                                           query-fs))
+                            (or (nil? query-f)
+                                (try
+                                  (query-f meta)
+                                  (catch Exception _
+                                    false)))
+                            (not (and (empty? query-fs)
+                                      (empty? query-lits)
+                                      (nil? query-f))))
+                     (conj (or % [])
+                           (if mask
+                             (merge {:id %2}
+                                    (select-keys meta mask))
+                             entry))
+                     %))
+                 %)
+               %)
+            nil
+            (or element-ids (filter filter-out-diction-elements (keys @dictionary))))))
