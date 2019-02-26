@@ -1,15 +1,23 @@
 # diction
 
-Diction is a Clojure library similar to spec functionality with added functionality and some batteries included.
+Diction is a Clojure library similar to spec but with added functionality and some batteries included.
 
 ## Status of Diction
 
 Diction is currently slated for first public release end-Q1/start-Q2 2019.
 
-Current Clojure libraries/frameworks for data specifications, validation, and more:
+Existing Clojure libraries/frameworks for data specifications, validation, and more:
 - `spec` : https://clojure.org/guides/spec
 - `prismatic/schema` : https://github.com/plumatic/schema
- 
+
+Diction is meant to provide everything out-of-the-box for data dictionary, schema definition,
+schema validation, schema generation, custom diction schema types, custom/dynamic validation rules, 
+custom/dynamic decoration rules, import/export of diction schemas, data metadata definition/management/query, 
+and so much more.
+
+Diction is also meant to change and improve to handle the evolving and dynamic nature of enterprise data element
+management.
+
 ## Features
 
 - data dictionary
