@@ -1,6 +1,6 @@
 (ns diction.example
   (:require [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
-                                  explain-all groom valid-all? groom function! test-function test-all-functions
+                                  explain-all meta-query groom valid-all? groom function! test-function test-all-functions
                                   lookup enum! inherit! clone! double! long! vector! keyword! generate-random-uuid]
              :as diction]))
 
@@ -136,3 +136,9 @@
                           :item-inventory-str
                           decoration-rule-inventory-str)
 
+;;; Meta Queries
+
+(int! ::ans {:meta {:pii true :rank 3 :label "answer" :foo "bars"}})
+(string! ::mercy {:meta {:pii true :rank 2 :label "merciful" :desc "what?"}})
+(string! ::wonk {:meta {:pii false :rank 3 :label "wonky"}})
+(double! ::tau {:meta {:label "tau baby" :rank 4 :pii true :foo false}})
