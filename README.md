@@ -543,7 +543,7 @@ work intelligently with their data.
 [{:id :diction.example/tau, :label "tau vs. pi", :pii true, :rank 4}
  {:id :diction.example/ans, :label "answer", :pii true, :rank 3}]
 
-;; :query-f allows for a function that takes the entire `entry` of
+;; :query-f allows for a function that takes the `meta` of
 ;; the candidate entry and returns truthy/falsey
 (meta-query {:mask [:label :pii :rank :foo] :query-f #(some? (:foo %))})
 ;=>
