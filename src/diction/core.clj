@@ -439,6 +439,19 @@
              []
              (range (+ norm-min (rand-int (inc df))))))))
 
+(defn generate-random-set
+  "Generates a random set of element `element-id` given optional minimum size `min` and maximum size `max`.
+  Default min is 0.  Default max is 16."
+  ([element-id] (generate-random-set element-id nil max))
+  ([element-id max] (generate-random-set element-id nil max))
+  ([element-id min max]
+   (let [norm-max (or max default-gen-vector-max)
+         norm-min (or min default-gen-vector-min)
+         df (- norm-max norm-min)]
+     (reduce (fn [a _] (set/union a #{(generate element-id)}))
+             #{}
+             (range (+ norm-min (rand-int (inc df))))))))
+
 (defn generate-random-uuid
   "Generates random UUID string."
   []
@@ -524,6 +537,27 @@
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a vector.")}]
     (if-let [vofv (reduce #(if-let [ev (explain vector-of-element-id %2)]
+                             (concat % ev)
+                             %)
+                          nil
+                          v)]
+      vofv
+      (if-not (if min (>= (count v) min) true)
+        [{:id id :entry entry :v v
+          :msg (str "Failed '" id "': value '" v "' has too few elements [" (count v) "]. (min=" min ")")}]
+        (when-not (if max (<= (count v) max) true)
+          [{:id id :entry entry :v v
+            :msg (str "Failed '" id "': value '" v "' has too many elements [" (count v) "]. (max=" max ")")}])))))
+
+(defn validate-set-of
+  "Validates the set of element id `set-of-element-id` given a mininum length `min`, maximum length `max`,
+  element value `v`, parent element id `id`, and entry `entry`."
+  [set-of-element-id min max
+   v id entry]
+  (if-not (set? v)
+    [{:id id :entry entry :v v
+      :msg (str "Failed '" id "': value '" v "' is not a set.")}]
+    (if-let [vofv (reduce #(if-let [ev (explain set-of-element-id %2)]
                              (concat % ev)
                              %)
                           nil
@@ -780,6 +814,20 @@
                           (partial validate-vector-of vof (:min m) (:max m))))
     m))
 
+(defn normalize-set
+  "Normalizes the set entry type elements (if necessary) given element map `m`.  If not a set type,
+  passhtru the element map `m`."
+  [m]
+  (if-let [vof (:set-of m)]
+    (assoc m :gen-f (or (:gen-f m)
+                        (wrap-gen-f (partial generate-random-set
+                                             vof
+                                             (:min m)
+                                             (:max m))))
+             :valid-f (or (:valid-f m)
+                          (partial validate-set-of vof (:min m) (:max m))))
+    m))
+
 (defn capture-un-fields
   [unf]
   (reduce #(assoc % (-> %2 name keyword) %2)
@@ -833,6 +881,7 @@
                                normalize-joda
                                normalize-keyword
                                normalize-vector
+                               normalize-set
                                normalize-map])
 
 (type-normalizers! default-type-normalizers) ; registers default type normalizer functions
@@ -916,6 +965,14 @@
   ([id vector-of-element-id element] (vector! id vector-of-element-id element nil))
   ([id vector-of-element-id element ctx]
    (element! id (merge {:vector-of vector-of-element-id} element) ctx)))
+
+(defn set-of!
+  "Register a set element given element id `id`, set element id `set-of-element-id`, element
+  map `element` and context `ctx`."
+  ([id set-of-element-id] (set-of! id set-of-element-id nil nil))
+  ([id set-of-element-id element] (set-of! id set-of-element-id element nil))
+  ([id set-of-element-id element ctx]
+   (element! id (merge {:set-of set-of-element-id} element) ctx)))
 
 (defn document!
   "Register a document/map element given element id `id`, required unqualified nested element ids `req-un`,
