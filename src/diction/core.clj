@@ -27,6 +27,11 @@
   [id]
   (get @dictionary id))
 
+(def req-key :required)
+(def req-un-key :required-un)
+(def opt-key :optional)
+(def opt-un-key :optional-un)
+
 ;;; Generative Function Testing ==============================================================
 
 (def functions (atom nil))
@@ -244,8 +249,8 @@
   []
   (odd? (System/currentTimeMillis)))
 
-(def document-keys-ns #{:required :optional})
-(def document-keys-un #{:required-un :optional-un})
+(def document-keys-ns #{req-key opt-key})
+(def document-keys-un #{req-un-key opt-un-key})
 
 (def document-keys (set/union document-keys-ns document-keys-un))
 
@@ -482,10 +487,10 @@
   (when-let [entry (lookup element-id)]
     (let [m (:element entry)]
       (merge
-        (generate-nested-elements (:required m))
-        (generate-nested-elements (:required-un m) true)
-        (generate-nested-elements (:optional m) false true)
-        (generate-nested-elements (:optional-un m) true true)))))
+        (generate-nested-elements (req-key m))
+        (generate-nested-elements (req-un-key m) true)
+        (generate-nested-elements (opt-key m) false true)
+        (generate-nested-elements (opt-un-key m) true true)))))
 
 ;;; Validators --------------------------------------------------------------------------------
 
@@ -838,10 +843,10 @@
   "Normalizes the required-optional/map entry type elements (if necessary) given entry map `m`.  If not a required-optiona/map type,
   passhtru the entry map `m`."
   [m]
-  (let [required-element-ids (:required m)
-        required-element-ids-un (:required-un m)
-        optional-element-ids (:optional m)
-        optional-element-ids-un (:optional-un m)
+  (let [required-element-ids (req-key m)
+        required-element-ids-un (req-un-key m)
+        optional-element-ids (opt-key m)
+        optional-element-ids-un (opt-un-key m)
         req-un-m (capture-un-fields required-element-ids-un)
         opt-un-m (capture-un-fields optional-element-ids-un)]
     (if (or required-element-ids required-element-ids-un optional-element-ids optional-element-ids-un)
@@ -917,6 +922,84 @@
      (swap! dictionary assoc id entry)
      entry)))
 
+(defn polite-assoc
+  "Politely associate key `k` with value `v` to map `m` iff there is no existing entry for
+  `k` and `v` in `m`."
+  [m k v]
+  (when (and k v)
+    (if-let [xv (get m k)]
+      m
+      (assoc m k v))))
+
+(defn resolve-unqualified
+  "Resolve unqualified element keys given entitiy maps `es` and the
+  `key` of either `required-un` or `optional-un`."
+  [key es]
+  (vals (reduce #(if-let [fs (get %2 key)]
+                                      (reduce (fn [a ek]
+                                                (polite-assoc a (name ek) ek))
+                                              %
+                                              fs)
+                                      %)
+                                   nil
+                                   es)))
+
+(defn resolve-req-opt-un
+  "Resolves optional unqualified given the existing required unqualified `req-un`
+  and the initial opertional unqualified `opt-un` so that there are no unqualified
+  element keys in opertional that are also in the required unqualified."
+  [req-un opt-un]
+  (if (empty? req-un)
+    opt-un
+    (into #{} (let [req-un-names (-> (map req-un name) (into #{}))]
+                (reduce #(if (contains? req-un-names (name %2))
+                           %
+                           (cons %2 %))
+                        nil
+                        opt-un)))))
+
+(defn resolve-merged-entities
+  "Resolve merged entites `e` and variadic entites `es`."
+  [e & es]
+  (let [ces (cons e es)
+        merged-req (into #{} (apply concat (map req-key ces)))
+        merged-req-un (into #{} (resolve-unqualified req-un-key ces))
+        merged-opt (into #{} (apply concat (map opt-key ces)))
+        merged-opt-un (into #{} (resolve-unqualified opt-un-key ces))
+        resolved-opt (set/difference merged-req merged-opt)
+        resolved-opt-un (resolve-req-opt-un merged-req-un merged-opt-un)
+        merged (merge (when-not (empty? merged-req) {req-key merged-req})
+                      (when-not (empty? merged-req-un) {req-un-key merged-req-un})
+                      (when-not (empty? resolved-opt) {opt-key resolved-opt})
+                      (when-not (empty? resolved-opt-un) {opt-un-key resolved-opt-un}))]
+    merged))
+
+(defn merge-entities!
+  "Merges and registers parent id `parent-id` for element `id` with optional
+  element map `element` and context map `ctx`."
+  ([{:keys [parent-ids id element ctx]}] (merge-entities! parent-ids id element ctx))
+  ([parent-ids id] (merge-entities! parent-ids id nil nil))
+  ([parent-ids id element] (merge-entities! parent-ids id element nil))
+  ([parent-ids id element ctx]
+   (let [parent-entries (->> parent-ids
+                             (map lookup)
+                             (filter some?))
+         parent-elements (->> parent-entries
+                              (map :element)
+                              (map (fn [x] (select-keys x [req-key req-un-key opt-key opt-un-key]))))
+         parent-ctxs (->> parent-entries
+                          (map :ctx)
+                          (filter some?)
+                          (fn [ctxs]
+                            (reduce (fn [a c]
+                                      (merge a c))
+                                    nil
+                                    ctxs)))
+         sm (merge {:id id}
+                   (apply resolve-merged-entities [element parent-elements]))
+         merged-ctx (merge parent-ctxs ctx)]
+     (element! id sm merged-ctx))))
+
 (defn merge!
   "Merges and registers parent id `parent-id` for element `id` with optional
   element map `element` and context map `ctx`."
@@ -926,17 +1009,17 @@
   ([parent-id id element ctx]
    (let [parent-entry (lookup parent-id)
          parent-element (:element parent-entry)
-         req (concat (:required parent-element) (:required element))
-         req-un (concat (:required-un parent-element) (:required-un element))
-         opt (concat (:optional parent-element) (:optional element))
-         opt-un (concat (:optional-un parent-element) (:optional-un element))
+         req (concat (req-key parent-element) (req-key element))
+         req-un (concat (req-un-key parent-element) (req-un-key element))
+         opt (concat (opt-key parent-element) (opt-key element))
+         opt-un (concat (opt-un-key parent-element) (opt-un-key element))
          sm (merge parent-element
                    element
                    {:id id}
-                   (when-not (empty? req) {:required (vec req)})
-                   (when-not (empty? req-un) {:required-un (vec req-un)})
-                   (when-not (empty? opt) {:optional (vec opt)})
-                   (when-not (empty? opt-un) {:optional-un (vec opt-un)}))
+                   (when-not (empty? req) {req-key (vec (into #{} req))})
+                   (when-not (empty? req-un) {req-un-key (vec (into #{} req-un))})
+                   (when-not (empty? opt) {opt-key (vec (into #{} opt))})
+                   (when-not (empty? opt-un) {opt-un-key (vec (into #{} opt-un))}))
          merged-ctx (merge (:ctx parent-entry) ctx)]
      (element! id sm merged-ctx))))
 
@@ -984,10 +1067,10 @@
   ([id req req-un opt opt-un element ctx]
    (element! id
              (merge element
-                    (when req {:required req})
-                    (when req-un {:required-un req-un})
-                    (when opt {:optional opt})
-                    (when opt-un {:optional-un opt-un}))
+                    (when req {req-key req})
+                    (when req-un {req-un-key req-un})
+                    (when opt {opt-key opt})
+                    (when opt-un {opt-un-key opt-un}))
              ctx)))
 
 (defn document-type?
