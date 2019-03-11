@@ -951,7 +951,8 @@
   [req-un opt-un]
   (if (empty? req-un)
     opt-un
-    (into #{} (let [req-un-names (-> (map req-un name) (into #{}))]
+    (into #{} (let [req-un-names (into #{} (map name req-un))]
+                (println :resolve-req-opt-un :req-un-names req-un-names)
                 (reduce #(if (contains? req-un-names (name %2))
                            %
                            (cons %2 %))
@@ -966,7 +967,7 @@
         merged-req-un (into #{} (resolve-unqualified req-un-key ces))
         merged-opt (into #{} (apply concat (map opt-key ces)))
         merged-opt-un (into #{} (resolve-unqualified opt-un-key ces))
-        resolved-opt (set/difference merged-req merged-opt)
+        resolved-opt (set/difference merged-opt merged-req)
         resolved-opt-un (resolve-req-opt-un merged-req-un merged-opt-un)
         merged (merge (when-not (empty? merged-req) {req-key merged-req})
                       (when-not (empty? merged-req-un) {req-un-key merged-req-un})
@@ -990,13 +991,14 @@
          parent-ctxs (->> parent-entries
                           (map :ctx)
                           (filter some?)
-                          (fn [ctxs]
+                          ((fn [ctxs]
                             (reduce (fn [a c]
                                       (merge a c))
                                     nil
-                                    ctxs)))
-         sm (merge {:id id}
-                   (apply resolve-merged-entities [element parent-elements]))
+                                    ctxs))))
+         resolved-entities (apply resolve-merged-entities (cons element parent-elements))
+         sm (merge {:id id} resolved-entities)
+         _ (println :merge-entities! :parent-elements parent-elements :parent-ids parent-ids :element element :sm sm :parent-ctxs parent-ctxs)
          merged-ctx (merge parent-ctxs ctx)]
      (element! id sm merged-ctx))))
 
@@ -1403,3 +1405,41 @@
                %)
             nil
             (or element-ids (filter filter-out-diction-elements (keys @dictionary))))))
+
+
+(string! ::fullname)
+(string! ::first-name)
+(string! ::middle-name)
+(string! ::last-name)
+(string! ::aka)
+
+(joda! ::dob)
+(joda! ::dod)
+
+;; (entity! ::person [::last-name ::dob] [::first-name ::fullname ::middle-name ::aka ::dod])
+
+(uuid! ::id)
+(string! ::type)
+(string! ::label)
+(string! ::description)
+
+(long! ::answer)
+(long! ::count)
+(double! ::metric)
+(double! ::tau)
+
+(element! ::person {:type :map
+                    req-key [::last-name ::dob]
+                    opt-key [::first-name ::fullname
+                             ::middle-name ::aka ::dod]})
+(element! ::handle {:type :map
+                    req-key [::id]
+                    opt-un-key [::label ::description
+                                ::type]})
+(element! ::muck {:type :map
+                  req-un-key [::answer]
+                  opt-key [::id ::label]})
+
+
+
+
