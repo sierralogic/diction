@@ -1,0 +1,1 @@
+{:elements [{:regex-pattern "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", :min 0, :meta {:label "UUID", :description "UUID String"}, :type :string, :max 36, :id :my-uuid, :parent-id :diction/uuid} {:id :yak, :type :string, :min 0, :max 64}]}

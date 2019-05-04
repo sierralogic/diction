@@ -4,6 +4,7 @@
             [clojure.edn :as edn]
             [clojure.pprint :as pp]
             [clojure.set :as set]
+            [clojure.string :as str]
             [clojure.test :refer [function?]]
             [clojure.test.check.generators :as gen]
             [miner.strgen :as sg])
@@ -1440,6 +1441,74 @@
                   req-un-key [::answer]
                   opt-key [::id ::label]})
 
+(def func-types {double! #{:double}
+                 element! #{:document :map :entity}
+                 enum! #{:enum}
+                 float! #{:float}
+                 int! #{:int :integer}
+                 joda! #{:joda :date :datetime}
+                 keyword! #{:keyword :kw}
+                 long! #{:long}
+                 string! #{:text :string}
+                 uuid! #{:uuid}
+                 vector! #{:vector :list}})
 
+(defn generate-lookups
+  [lm]
+  (reduce-kv #(reduce (fn [avk vk]
+                        (assoc avk vk %2))
+                      %
+                      %3)
+          nil
+          lm))
 
+(def type-func (generate-lookups func-types))
 
+(def dev-export
+  {:elements [{:id :yak
+               :type :string
+               :min 0
+               :max 64}
+              {:id :my-uuid
+               :parent-id :diction/uuid}]})
+
+(defn safe-ns
+  [x]
+  (try
+    (or (namespace x) "")
+    (catch Exception _
+      "")))
+
+(defn import-elements!
+  [dm]
+  (when-let [es (:elements dm)]
+    (reduce #(let [{:keys [id parent-id ctx]} %2
+                   args [id %2 ctx]
+                   pargs (if parent-id (cons parent-id args) args)]
+               (conj (or % []) (apply element! pargs)))
+            nil
+            es)))
+
+(def export-exclude-prefix "diction")
+
+(defn export-elements!
+  []
+  (let [d (mapv #(-> %
+                     second
+                     :element
+                     (dissoc :gen-f :valid-f))
+                (filter #(-> %
+                             first
+                             safe-ns
+                             (str/starts-with? export-exclude-prefix)
+                             not)
+                        @dictionary))]
+    d))
+
+(defn export-elements-to!
+  [target]
+  (spit target {:elements (export-elements!)}))
+
+(defn import-elements-from!
+  [source]
+  (import-elements! (-> source slurp edn/read-string)))
