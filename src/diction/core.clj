@@ -7,15 +7,20 @@
             [clojure.string :as str]
             [clojure.test :refer [function?]]
             [clojure.test.check.generators :as gen]
+            [clojure.walk :as walk]
             [miner.strgen :as sg])
   (:import (java.util UUID Random)
            (org.joda.time DateTime)))
 
 (def dictionary (atom nil))
 
+(def sensible (atom true))
+(defn sensible! [s] (reset! sensible s))
+
 (declare initialize-diction-elements!)
 (declare explain)
 (declare generate)
+(declare generate-sensibly)
 
 (defn clear-dictionary!
   "Clear dictionary entries."
@@ -27,6 +32,14 @@
   "Lookup of element by element id `id`."
   [id]
   (get @dictionary id))
+
+(def info lookup)
+(def help lookup)
+
+(defn <-meta
+  [id]
+  (when-let [lu (lookup id)]
+    (get-in lu [:element :meta])))
 
 (def req-key :required)
 (def req-un-key :required-un)
@@ -166,6 +179,50 @@
                 (get @decoration-rules element-id))
      v)))
 
+;;; Undecoration Rules ===========================================================================
+
+(def undecoration-rules (atom nil))
+
+(defn undecoration-rule!
+  "Registers an undecoration rule for element `element-id`, undecoration rule id `rule-id`, rule function `rule-f`,
+  and optional context map `ctx`."
+  ([{:keys [element-id rule-id rule-f ctx]}] (undecoration-rule! element-id rule-id rule-f ctx))
+  ([element-id rule-id rule-f] (undecoration-rule! element-id rule-id rule-f nil))
+  ([element-id rule-id rule-f ctx]
+   (swap! undecoration-rules update element-id #(assoc % rule-id (merge {:id rule-id
+                                                                         :element-id element-id
+                                                                         :rule-f rule-f}
+                                                                        (when ctx {:ctx ctx}))))))
+(defn remove-undecoration-rule!
+  "Removes undecoration rule `rule-id` from element `element-id`."
+  [element-id rule-id]
+  (swap! undecoration-rules update element-id #(dissoc % rule-id)))
+
+(defn clear-undecoration-rules!
+  "Clears undecoration rules for element `element-id`."
+  [element-id]
+  (swap! undecoration-rules dissoc element-id))
+
+(defn reset-undecoration-rules!
+  "Resets the undecoration rules.  Clears all undecoration rules if no arguments or `x` is `nil`.  Otherwise,
+  reset the undecoration rules to `x`."
+  ([] (reset-undecoration-rules! nil))
+  ([x]
+   (reset! undecoration-rules x)))
+
+(defn undecorate
+  "Undecorates element value `v` using undecoration rules for element `element-id` with optional context map `ctx`."
+  ([element-id v] (undecorate element-id v nil))
+  ([element-id v ctx]
+   (if-let [entry (lookup element-id)]
+     (reduce-kv (fn [a _ rule]
+                  (if-let [af (:rule-f rule)]
+                    (af a entry rule (merge (:ctx entry) (:ctx rule) ctx))
+                    a))
+                v
+                (get @undecoration-rules element-id))
+     v)))
+
 ;;; Utilities --------------------------------------------------------------------
 
 (def joda-class (class (t/now)))
@@ -219,7 +276,57 @@
       (-> x str (subs 1))
       (str x))))
 
+(defn ->kw
+  "Convert `xs to keyword."
+  [x]
+  (if (keyword? x)
+    x
+    (-> x
+        str
+        keyword)))
+
 (def rndm (Random.))
+
+(defn apply-f-to-keys
+  "Recursively transforms all map keys from keywords to strings."
+  {:added "1.1"}
+  [f m]
+  (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m))
+
+(defn ->snake
+  "Convert `s` to snake case."
+  [s]
+  (-> s
+      ->str
+      str/lower-case
+      (str/replace "-" "_")))
+
+(defn ->skewer
+  "Convert `s` to skewer case."
+  [s]
+  (-> s
+      ->str
+      str/trim
+      str/lower-case
+      (str/replace " " "-")
+      (str/replace "_" "-")))
+
+(defn ->skewer-kw
+  [x]
+  (-> x
+      ->skewer
+      keyword))
+
+(defn walk-apply-key-f
+  [kf kv]
+  (let [[k v] kv]
+    [(kf k) v]))
+
+(def snakify-keys (partial walk-apply-key-f ->snake))
+(def skewer-keys (partial walk-apply-key-f ->skewer-kw))
+
+(def snake-keys (partial apply-f-to-keys snakify-keys))
+(def skewer-keys (partial apply-f-to-keys skewer-keys))
 
 (defn random-int
   "Generates random int."
@@ -441,7 +548,7 @@
    (let [norm-max (or max default-gen-vector-max)
          norm-min (or min default-gen-vector-min)
          df (- norm-max norm-min)]
-     (reduce (fn [a _] (conj a (generate element-id)))
+     (reduce (fn [a _] (conj a (generate-sensibly element-id @sensible)))
              []
              (range (+ norm-min (rand-int (inc df))))))))
 
@@ -454,7 +561,7 @@
    (let [norm-max (or max default-gen-vector-max)
          norm-min (or min default-gen-vector-min)
          df (- norm-max norm-min)]
-     (reduce (fn [a _] (set/union a #{(generate element-id)}))
+     (reduce (fn [a _] (set/union a #{(generate-sensibly element-id @sensible)}))
              #{}
              (range (+ norm-min (rand-int (inc df))))))))
 
@@ -469,6 +576,7 @@
   ([element-ids] (generate-nested-elements element-ids false false))
   ([element-ids unqualified?] (generate-nested-elements element-ids unqualified? false))
   ([element-ids unqualified? optional?]
+   (println :core/generate-nested-elements :element-ids element-ids)
    (when-not (empty? element-ids)
      (reduce (fn [a element-id]
                (if (or (not optional?) (coin-toss?))
@@ -477,7 +585,7 @@
                              (keyword (name element-id))
                              element-id)
                            element-id)]
-                   (assoc a k (generate element-id)))
+                   (assoc a k (generate-sensibly element-id @sensible)))
                  a))
              nil
              element-ids))))
@@ -1189,14 +1297,39 @@
     (when-let [gen-f (get-in entry [:element :gen-f])]
       (gen-f id entry))))
 
+(defn random-sensible-value
+  "Returns random sensible value (:element :meta :sensible-values) for
+  element `id` and optional `generate-as-fallback?` flag.
+  Returns `nil` if no sensible values are found and optional `genereate-as-fallback?`
+  flag is `false` or `nil`.
+  If no sensible values are found and optional `generate-as-fallback?` flag
+  is `truthy`, then attempt to generate value for element `id`."
+  ([id] (random-sensible-value id nil))
+  ([id generate-as-fallback?]
+  (when-let [entry (lookup id)]
+    (if-let [svs (get-in entry [:element :meta :sensible-values])]
+      (if-not (empty? svs)
+        (nth svs (Math/floor (* (rand) (count svs))))
+        (when generate-as-fallback? (generate id)))
+      (when generate-as-fallback? (generate id))))))
+
+(defn generate-sensibly
+  "Generates a sensible value for element with `id` and optional `generate-as-fallback?`
+  flag to use the generative function for the element if no sensible values
+  exist in the meta of the element (:element :meta :sensible-values)."
+  ([id] (generate-sensibly id nil))
+  ([id generate-as-fallback?]
+   (random-sensible-value id generate-as-fallback?)))
+
 (defn explain
   "Explains validation failures for element `id` against element value `v` as a vector of maps with validation
   failure messages and info.  If no validation failure occurs, returns nil."
   [id v]
   (if-let [entry (lookup id)]
-    (let [sv (when-let [vf (get-in entry [:element :valid-f])] (vf v id entry))]
+    (let [sv (when-let [vf (get-in entry [:element :valid-f])]
+               (vf v id entry))]
       (when-not (empty? sv)
-        sv))
+        (vec sv)))
     [{:id id :v v
       :msg (str "Element '" id "' does not exist.")}]))
 

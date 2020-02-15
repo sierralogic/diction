@@ -1,5 +1,6 @@
 (ns diction.example
-  (:require [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
+  (:require [clojure.walk :as walk]
+            [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
                                   explain-all meta-query groom valid-all? groom function! test-function test-all-functions
                                   lookup enum! inherit! clone! double! long! vector! keyword! generate-random-uuid]
              :as diction]))
@@ -8,7 +9,7 @@
 
 ;; defines label as a string with a minimum length of 0 and max length of 8
 ;; w/ built-in validation and generation
-(string! ::label {:min 0 :max 8})
+(string! ::label {:min 0 :max 8 :meta {:sensible-values ["labl1" "lable2" "another label"]}})
 
 ;; defines unit-count as a long (default whole numbers in Clojure) with a min of 0 and max of 999.
 ;; w/ built-in validation and generation
@@ -18,7 +19,7 @@
 ;; w/ built-in validation and generation
 (double! ::unit-cost {:min 0.01 :max 99.99})
 
-(string! ::tag {:min 2 :max 6})
+(string! ::tag {:min 2 :max 6 :meta {:sensible-values ["tag1" "tag2" "taga" "tagb"]}})
 
 ;; defines tags as a vector of diction element `::tag` with min item count of 0 and max of 64.
 ;; w/ built-in validation and generation
@@ -26,7 +27,7 @@
 
 ;; defines badge as a keyword diction element with max length of 8.
 ;; w/ built-in validation and generation
-(keyword! ::badge {:max 8})
+(keyword! ::badge {:max 8 :meta {:sensible-values [:badge2 :badge4 :b6 :b8 :b234]}})
 
 ;; defines created as a joda datetime element
 ;; w/ built-in validation and generation
@@ -40,7 +41,7 @@
 ;; w/ built-in validation and generation
 (enum! ::cost-basis #{:flat :per-unit})
 
-(string! ::description {:min 0 :max 128})
+(string! ::description {:min 0 :max 128 :meta {:sensible-values ["here is a description" "another description" "yet another descriptive narrative"]}})
 (double! ::percent-upcharge {:min 0.0 :max 1.0})
 (double! ::fee-upcharge {:min 0.0 :max 999.99})
 
@@ -128,6 +129,10 @@
                                (* (get v :unit-count 0) (get v :unit-cost 0.0))
                                " USD.")))
 
+(defn decoration-rule-keys-to-snake
+  [v entry rule ctx]
+  (diction/snake-keys v))
+
 (diction/decoration-rule! ::item
                           :calculate-item-inventory-retail-worth
                           decoration-rule-calc-item-inventory-retail-worth)
@@ -136,9 +141,26 @@
                           :item-inventory-str
                           decoration-rule-inventory-str)
 
+(diction/decoration-rule! ::item
+                          :item-keys-to-strings
+                          decoration-rule-keys-to-snake)
+
+(defn undecoration-rule-keys-to-skewer
+  [v entry rule ctx]
+  (diction/skewer-keys v))
+
+(diction/undecoration-rule! ::item
+                            :item-keys-to-skewer
+                            undecoration-rule-keys-to-skewer)
+
+
 ;;; Meta Queries
 
 (int! ::ans {:meta {:pii true :rank 3 :label "answer" :foo "bars"}})
 (string! ::mercy {:meta {:pii true :rank 2 :label "merciful" :desc "what?"}})
-(string! ::wonk {:meta {:pii false :rank 3 :label "wonky"}})
-(double! ::tau {:meta {:label "tau baby" :rank 4 :pii true :foo false}})
+(string! ::wonk {:meta {:pii false :rank 3 :label "wonky" :sensible-values ["Wink" "Wonky" "Willy" "Charlie"]}})
+(double! ::tau {:meta {:label "tau baby" :rank 4 :pii true :foo false :sensible-values [43.2 44.3]}})
+
+;; dev
+
+(def xuid "d0b6879a-fd1a-4ec0-9708-8118d43286d9")

@@ -1,4 +1,4 @@
-(defproject diction "0.1.1"
+(defproject diction "0.1.2"
   :description "Diction is a Clojure data dictionary with data shape definition/validation/generation with batteries included."
   :url "http://sierralogic.com/project/diction"
   :license {:name "Eclipse Public License"
