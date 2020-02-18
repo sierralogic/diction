@@ -448,6 +448,11 @@
          (println :e e)
          (t/now))))))
 
+(defn generate-random-boolean
+  "Generates a randome boolean `true` or `false`."
+  []
+  (odd? (System/currentTimeMillis)))
+
 (def default-gen-int-min Integer/MIN_VALUE)
 (def default-gen-int-max Integer/MAX_VALUE)
 
@@ -708,6 +713,13 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is after than max. (max=" max "; " (DateTime. max) ")")}]))))
 
+(defn validate-boolean
+  "Validates if value `v` is boolean."
+  [v id entry]
+  (when-not (boolean? v)
+    [{:id id :entry entry :v v
+      :msg (str "Failed '" id "': value '" v "' is not a boolean.")}]))
+
 (defn validate-int
   "Validates that an int number value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and element `entry`."
@@ -837,6 +849,15 @@
     (assoc m :valid-f (partial validate-class c))
     m))
 
+(defn normalize-boolean
+  "Normalizes the boolean type elements (if necessary) given element map `m`.  If not a boolean type, passhtru
+  the element map `m`."
+  [m]
+  (if (= :boolean (:type m))
+    (assoc m :gen-f (wrap-gen-f generate-random-boolean)
+             :valid-f (partial validate-boolean))
+    m))
+
 (defn normalize-int
   "Normalizes the int number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
   the element map `m`."
@@ -883,7 +904,7 @@
       (merge (assoc m :gen-f (or                            ;(:gen-f m)
                                (if rgx
                                  (wrap-gen-f (partial generate-regex-string rgx))
-                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m)))))
+                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m) (:chars m)))))
                       :valid-f (or                          ; (:valid-f m)
                                  (partial validate-string (:min m) (:max m) rgx)))
              (when rgx {:regex rgx})))
@@ -986,6 +1007,7 @@
           normalizer-fs))
 
 (def default-type-normalizers [normalize-enum
+                               normalize-boolean
                                normalize-int
                                normalize-long
                                normalize-float
@@ -1223,6 +1245,8 @@
 
 ;;; Base Elements ------------------------------------------------------------
 
+(def diction-boolean :diction/boolean)
+
 (def diction-int :diction/int)
 (def diction-int-pos :diction/pos-int)
 (def diction-int-neg :diction/neg-int)
@@ -1246,6 +1270,9 @@
 
 (defn initialize-diction-elements!
   []
+
+  (element! diction-boolean {:type :boolean})
+
   (element! diction-int {:type :int})
   (element! diction-int-pos {:type :int :min 0})
   (element! diction-int-neg {:type :int :min Integer/MIN_VALUE :max 0})
@@ -1267,6 +1294,7 @@
   (element! diction-uuid {:type :string :min 0 :max 36 :regex-pattern uuid-regex-pattern :meta {:label "UUID" :description "UUID String"}})
   (element! diction-joda {:type :joda :meta {:label "Joda Datetime" :description "Joda Date Time"}}))
 
+(def boolean! (partial inherit! diction-boolean))
 (def int! (partial inherit! diction-int))
 (def pos-int! (partial inherit! diction-int-pos))
 (def neg-int! (partial inherit! diction-int-neg))
