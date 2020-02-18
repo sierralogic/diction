@@ -1,5 +1,6 @@
 (ns diction.demo
-  (:require [diction.core :refer [clone! enum! generate string! long! pos-double! double! boolean! vector! document!] :as dict]))
+  (:require [diction.core :refer [clone! enum! generate string! long! pos-double! double! boolean! vector! document!
+                                  poly-vector! tuple!] :as dict]))
 
 
 ;;x_id : MongoDB OID unique id
@@ -48,7 +49,7 @@
 (enum! :unit_cost_basis ["per_person" "per_unit"] {:meta {:default "stuff"}})
 
 (string! :image_id {:min 4 :max 8})
-(vector! :image_ids :image_id)
+(vector! :image_ids :image_id {:min 1 :max 1})
 
 (pos-double! :amount)
 
@@ -61,16 +62,17 @@
 
 (vector! :additional_charges :additional_charge)
 
+(string! :tag {:min 4 :max 12})
+(vector! :tags :tag {:min 0 :max 8})
+
+(enum! :metro ["SFBay" "NYMetro" "LAMetro"])
+
 (document! :item
            [:_id :label :category :subcategory :active
             :visible_on_listing :unit_cost :unit_cost_basis]
-           [:image_ids :additional_charges])
+           [:image_ids :additional_charges :metro :tags])
 
 
-(string! :tag {:min 4 :max 12})
-(vector! :tags :tag)
-
-(enum! :metro ["SFBay" "NYMetro" "LAMetro"])
 
 ;; regions
 ;; _id : string; human-readable; like brook or east_sf_bay
@@ -81,12 +83,21 @@
 ;tags : list of strings
 ;metro : string; associated metro_id
 
-
 (double! :latitude {:min -90.0 :max 90.0})
 (double! :longitude {:min -180.0 :max 180.0})
 
+(enum! :geo/type ["Multipolygon"])
+
+(tuple! :long-lat [:longitude :latitude])
+
+(vector! :long-lats :long-lat {:min 3 :max 15})
+
+(vector! :geo/polygon :long-lats {:min 1 :max 1})
+
+(vector! :geo/coordinates :geo/polygon)
+
 (document! :area
-           [:latitude :longitude])
+           [:geo/type :geo/coordinates])
 
 (document! :region
            [:_id :label :active :area

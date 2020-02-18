@@ -46,6 +46,13 @@
 (def opt-key :optional)
 (def opt-un-key :optional-un)
 
+(defn safe-nth
+  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
+  [c ndx]
+  (try
+    (nth c ndx)
+    (catch Exception _)))
+
 ;;; Generative Function Testing ==============================================================
 
 (def functions (atom nil))
@@ -547,13 +554,39 @@
 (defn generate-random-vector
   "Generates a random vector of element `element-id` given optional minimum size `min` and maximum size `max`.
   Default min is 0.  Default max is 16."
-  ([element-id] (generate-random-vector element-id nil max))
+  ([element-id] (generate-random-vector element-id nil nil))
   ([element-id max] (generate-random-vector element-id nil max))
   ([element-id min max]
    (let [norm-max (or max default-gen-vector-max)
          norm-min (or min default-gen-vector-min)
          df (- norm-max norm-min)]
      (reduce (fn [a _] (conj a (generate-sensibly element-id @sensible)))
+             []
+             (range (+ norm-min (rand-int (inc df))))))))
+
+(defn generate-random-tuple
+  "Generates a random tuple of elements `element-ids`"
+  [element-ids]
+  (println :core/gen-rdm-tuple :element-ids element-ids)
+  (reduce (fn [a eid]
+            (conj a (generate-sensibly eid @sensible)))
+          []
+          element-ids))
+
+(defn generate-random-poly-vector
+  "Generates a random poly vector of elements `element-ids` given optional minimum size `min` and maximum size `max`.
+  Default min is 0.  Default max is 16."
+  ([element-ids] (generate-random-poly-vector element-ids nil nil))
+  ([element-ids max] (generate-random-poly-vector element-ids nil max))
+  ([element-ids min max]
+   (println :core/gen-rdm-poly-v :element-ids element-ids :min min :max max)
+   (let [norm-max (or max default-gen-vector-max)
+         norm-min (or min default-gen-vector-min)
+         df (- norm-max norm-min)]
+     (reduce (fn [a _] (conj a (reduce (fn [acc element-id]
+                                         (conj acc (generate-sensibly element-id @sensible)))
+                                       []
+                                       element-ids)))
              []
              (range (+ norm-min (rand-int (inc df))))))))
 
@@ -581,7 +614,6 @@
   ([element-ids] (generate-nested-elements element-ids false false))
   ([element-ids unqualified?] (generate-nested-elements element-ids unqualified? false))
   ([element-ids unqualified? optional?]
-   (println :core/generate-nested-elements :element-ids element-ids)
    (when-not (empty? element-ids)
      (reduce (fn [a element-id]
                (if (or (not optional?) (coin-toss?))
@@ -660,6 +692,51 @@
                              %)
                           nil
                           v)]
+      vofv
+      (if-not (if min (>= (count v) min) true)
+        [{:id id :entry entry :v v
+          :msg (str "Failed '" id "': value '" v "' has too few elements [" (count v) "]. (min=" min ")")}]
+        (when-not (if max (<= (count v) max) true)
+          [{:id id :entry entry :v v
+            :msg (str "Failed '" id "': value '" v "' has too many elements [" (count v) "]. (max=" max ")")}])))))
+
+(defn validate-tuple-of
+  "Validates the tuple of element ids `vector-of-element-ids` given
+  element tuple value `v`, parent element id `id`, and entry `entry`."
+  [vector-of-element-ids
+   v id entry]
+  (if-not (vector? v)
+    [{:id id :entry entry :v v
+      :msg (str "Failed '" id "': value '" v "' is not a tuple/vector.")}]
+    (if (not= (count v) (count vector-of-element-ids))
+      [{:id id :entry entry :v v
+        :msg (str "Failed '" id "': value '" v "' has different element count. Expected "
+                  (count vector-of-element-ids) " count not equal to actual tuple value count "
+                  (count v) ".")}]
+      (when-let [vofv (reduce (fn [acc ndx]
+                                (if-let [ev (explain (safe-nth vector-of-element-ids ndx)
+                                                     (safe-nth v ndx))]
+                                  (concat acc ev)
+                                  acc))
+                              nil
+                              (range (count vector-of-element-ids)))]
+        vofv))))
+
+(defn validate-poly-vector-of
+  "Validates the poly vector of element ids `vector-of-element-ids` given a mininum length `min`, maximum length `max`,
+  element poly vector value `v`, parent element id `id`, and entry `entry`."
+  [vector-of-element-ids min max
+   v id entry]
+  (if-not (vector? v)
+    [{:id id :entry entry :v v
+      :msg (str "Failed '" id "': value '" v "' is not a vector.")}]
+    (if-let [vofv (reduce (fn [acc ndx]
+                            (if-let [ev (explain (safe-nth vector-of-element-ids ndx)
+                                                 (safe-nth v ndx))]
+                              (concat acc ev)
+                              acc))
+                          nil
+                          (range (count v)))]
       vofv
       (if-not (if min (>= (count v) min) true)
         [{:id id :entry entry :v v
@@ -949,6 +1026,32 @@
                           (partial validate-vector-of vof (:min m) (:max m))))
     m))
 
+(defn normalize-tuple
+  "Normalizes the poly-tuple-of entry type elements (if necessary) given element map `m`.
+  If not a tuple type, passhtru the element map `m`."
+  [m]
+  (if-let [vof (:tuple m)]
+    (assoc m :gen-f (or (:gen-f m)
+                        (wrap-gen-f (partial generate-random-tuple
+                                             vof)))
+             :valid-f (or (:valid-f m)
+                          (partial validate-tuple-of vof)))
+    m))
+
+(defn normalize-poly-vector
+  "Normalizes the poly-vector-of entry type elements (if necessary) given element map `m`.
+  If not a poly-vector-of type, passhtru the element map `m`."
+  [m]
+  (if-let [vof (:poly-vector-of m)]
+    (assoc m :gen-f (or (:gen-f m)
+                        (wrap-gen-f (partial generate-random-poly-vector
+                                             vof
+                                             (:min m)
+                                             (:max m))))
+             :valid-f (or (:valid-f m)
+                          (partial validate-poly-vector-of vof (:min m) (:max m))))
+    m))
+
 (defn normalize-set
   "Normalizes the set entry type elements (if necessary) given element map `m`.  If not a set type,
   passhtru the element map `m`."
@@ -1017,6 +1120,8 @@
                                normalize-joda
                                normalize-keyword
                                normalize-vector
+                               normalize-tuple
+                               normalize-poly-vector
                                normalize-set
                                normalize-map])
 
@@ -1182,6 +1287,22 @@
   ([id vector-of-element-id element ctx]
    (element! id (merge {:vector-of vector-of-element-id} element) ctx)))
 
+(defn poly-vector!
+  "Register a poly vector (polyglot of element ids) element given element id `id`,
+  vector element ids `vector-of-element-ids`, element map `element` and context `ctx`."
+  ([id vector-of-element-ids] (poly-vector! id vector-of-element-ids nil nil))
+  ([id vector-of-element-ids element] (poly-vector! id vector-of-element-ids element nil))
+  ([id vector-of-element-ids element ctx]
+   (element! id (merge {:poly-vector-of vector-of-element-ids} element) ctx)))
+
+(defn tuple!
+  "Register a tuple (polyglot of element ids) element given element id `id`,
+  vector element ids `vector-of-element-ids`, element map `element` and context `ctx`."
+  ([id vector-of-element-ids] (tuple! id vector-of-element-ids nil nil))
+  ([id vector-of-element-ids element] (tuple! id vector-of-element-ids element nil))
+  ([id vector-of-element-ids element ctx]
+   (element! id (merge {:tuple vector-of-element-ids} element) ctx)))
+
 (defn set-of!
   "Register a set element given element id `id`, set element id `set-of-element-id`, element
   map `element` and context `ctx`."
@@ -1321,8 +1442,11 @@
 (defn generate
   "Generates a valid value of element id `id`."
   [id]
+  ; (println :core/generate :id id)
   (when-let [entry (lookup id)]
+    ; (println :core/generate :entry entry)
     (when-let [gen-f (get-in entry [:element :gen-f])]
+      (println :core/generate :gen-f gen-f)
       (gen-f id entry))))
 
 (defn random-sensible-value
@@ -1395,7 +1519,8 @@
   ([parent-id id v] (groom-vector parent-id id v nil))
   ([parent-id id v ctx]
    (when-let [entry (lookup id)]
-     (when-let [vot-id (get-in entry [:element :vector-of])]
+     (when-let [vot-id (or (get-in entry [:element :vector-of])
+                           (get-in entry [:element :poly-vector-of]))]
        (reduce #(conj (or % []) (groom id vot-id %2 nil))
                nil
                v)))))
