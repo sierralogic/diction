@@ -13,6 +13,13 @@
            (org.joda.time DateTime)))
 
 (def dictionary (atom nil))
+(defn dictionary! [d] (reset! dictionary d))
+
+(defn clear-dictionary!
+  "Clears the `dictionary` completely to `nil`.  You must re-register the
+  dictionary after."
+  []
+  (dictionary! nil))
 
 (def sensible (atom true))
 (defn sensible! [s] (reset! sensible s))
@@ -45,13 +52,6 @@
 (def req-un-key :required-un)
 (def opt-key :optional)
 (def opt-un-key :optional-un)
-
-(defn safe-nth
-  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
-  [c ndx]
-  (try
-    (nth c ndx)
-    (catch Exception _)))
 
 ;;; Generative Function Testing ==============================================================
 
@@ -334,6 +334,67 @@
 
 (def snake-keys (partial apply-f-to-keys snakify-keys))
 (def skewer-keys (partial apply-f-to-keys skewer-keys))
+
+(def default-label-replacements {"Id" "ID"
+                                 "Ssn" "SSN"
+                                 "Num" "No."
+                                 "Cd" "Code"
+                                 "Svc" "Service"
+                                 "Pct" "Percent"
+                                 "Roi" "ROI"
+                                 "Mo" "Month"
+                                 "Yr" "Year"
+                                 "Wk" "Week"
+                                 "Loe" "LOE"
+                                 "No" "No."
+                                 "Ein" "EIN"})
+
+(def label-replacements (atom default-label-replacements))
+(defn label-replacements!
+  "Sets the label replacements with `lrs` map.
+  `lrs` should have the string key with only the first letter capitalized
+  (`Id` no `id`), and the value the prettified word or abbreviation."
+  [lrs]
+  (reset! label-replacements lrs))
+
+(defn replace-with
+  "Returns value in replacement map `rs` if the key `v` exists
+  in `rs`.  Otherwise, returns `v`."
+  [rs v]
+  (get rs v v))
+
+(defn replace-labels
+  "Replace label `v` with replacement, otherwise pass through `v`."
+  [v]
+  (replace-with @label-replacements v))
+
+(defn normalize-words
+  "Normalize each word in `s`."
+  [s]
+  (->> s
+       ->str
+       str/lower-case
+       (#(str/split % #" "))
+       (map str/capitalize)
+       (map replace-labels)
+       (str/join " ")))
+
+(defn labelize
+  "Converts `x` to a label."
+  [x]
+  (-> x
+      ->str
+      (str/replace "-" " ")
+      (str/replace "_" " ")
+      normalize-words
+      str/trim))
+
+(defn safe-nth
+  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
+  [c ndx]
+  (try
+    (nth c ndx)
+    (catch Exception _)))
 
 (defn random-int
   "Generates random int."
@@ -1270,13 +1331,16 @@
 
 (defn clone!
   "Clones `parent-id` to the new element id `id`."
-  [parent-id id]
+  ([parent-id id] (clone! parent-id id nil))
+  ([parent-id id ctx]
   (when-let [p (lookup parent-id)]
-    (let [entry (-> p
+    (let [merged-meta (or (merge (get-in p [:element :meta]) (:meta ctx)) {})
+          entry (-> p
                     (assoc :id id)
-                    (assoc-in [:element :id] id))]
+                    (assoc-in [:element :id] id)
+                    (assoc-in [:element :meta] merged-meta))]
       (swap! dictionary assoc id entry)
-      entry)))
+      entry))))
 
 (defn vector!
   "Register a vector element given element id `id`, vector element id `vector-of-element-id`, element

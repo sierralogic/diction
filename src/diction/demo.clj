@@ -1,6 +1,7 @@
 (ns diction.demo
-  (:require [diction.core :refer [clone! enum! generate string! long! pos-double! double! boolean! vector! document!
-                                  poly-vector! tuple!] :as dict]))
+  (:require [diction.core :refer [clone! enum! generate string! long! set-of! pos-double! double! boolean! vector! document!
+                                  poly-vector! tuple!] :as dict]
+            [diction.documentation :as doc]))
 
 
 ;;x_id : MongoDB OID unique id
@@ -31,7 +32,7 @@
 
 ;Example
 
-(string! :moid {:min 24 :max 24 :chars "abcdef0123456789"})
+(string! :moid {:min 24 :max 24 :chars "abcdef0123456789" :meta {:hint "24-char MongoDB string id"}})
 
 (clone! :moid :_id)
 
@@ -57,6 +58,13 @@
 (enum! :charge_type ["tax" "fee"])
 (enum! :charge_unit ["%" "$"] {:default "%"})
 
+(clone! :moid :ref/vendor {:meta {:reference :vendor}})
+(vector! :ref/vendors :ref/vendor {:meta {:reference :vendor}})
+
+(clone! :moid :ref/region {:meta {:reference :region}})
+
+(vector! :ref/regions :ref/region {:meta {:reference :region}})
+
 (document! :additional_charge
            [:label :amount :charge_type :charge_unit :charge_id])
 
@@ -67,12 +75,21 @@
 
 (enum! :metro ["SFBay" "NYMetro" "LAMetro"])
 
+(set-of! :metros :metro)
+
+(document! :item/vendor
+           [:ref/vendor :ref/region])
+
+(vector! :item/vendors :item/vendor)
+
 (enum! :use_type ["Production" "Off-Site" "Event"])
 
 (document! :item
            [:_id :label :category :subcategory :active
             :visible_on_listing :unit_cost :unit_cost_basis]
-           [:image_ids :additional_charges :metro :use_type :tags])
+           [:image_ids :additional_charges :metro :use_type :tags
+            :ref/regions
+            :item/vendors])
 
 ;; regions
 ;; _id : string; human-readable; like brook or east_sf_bay
@@ -108,7 +125,7 @@
 (string! :address {:min 5 :meta {:sensible-values ["123 Main St." "245 W. 52nd" "1A Unicorn Way"]}})
 (string! :address2 {:meta {:sensible-values ["Unit 101" "Suite 2A" "#42"]}})
 (string! :city {:meta {:sensible-values ["San Francisco" "Brooklyn" "Austin" "Burbank"]}})
-(string! :state {:min 2 :max 2 :meta {:sensible-values ["CA" "NY" "TX"]}})
+(string! :state {:min 2 :max 2 :meta {:label "State" :description "State or province" :hint "Enter state/province" :sensible-values ["CA" "NY" "TX"]}})
 (string! :country {:meta {:sensible-values ["US"]}})
 (string! :zip {:regex-pattern "\\d{5}"})
 (string! :ein {:regex-pattern "\\d{2}-\\d{7}"})
@@ -118,4 +135,4 @@
 (document! :vendor
            [:_id :label :active :area :description
             :name :address :city :state :zip :email :phone]
-           [:address2 :country :ein])
+           [:address2 :country :metros :ein])

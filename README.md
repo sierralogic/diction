@@ -573,9 +573,8 @@ work intelligently with their data.
 (meta-query {:mask [:label :pii :rank :foo] :query {:pii true :rank #(> % 3)} :query-f #(some? (:foo %))})
 ;=>
 [{:id :diction.example/tau, :label "tau vs. pi", :pii true, :rank 4, :foo false}]
-
 ```
-
+  
 ## License
 
 Copyright © 2019 SierraLogic LLC
