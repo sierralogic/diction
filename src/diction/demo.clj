@@ -36,12 +36,12 @@
 (clone! :moid :_id)
 
 (string! :label {:meta {:sensible-values ["label1" "label2" "label zed"]}})
-(string! :description)
+(string! :description {:meta {:sensible-values ["Something descriptive" "Another description" "This is descriptive"]}})
 
 (boolean! :active)
 
-(enum! :category ["cata" "catb" "catz"])
-(string! :subcategory)
+(string! :category {:meta {:sensible-values ["cata" "catb" "catz"]}})
+(string! :subcategory {:meta {:sensible-values ["subcat1" "subcat2" "subcat99"]}})
 
 (boolean! :visible_on_listing)
 
@@ -60,19 +60,19 @@
 (document! :additional_charge
            [:label :amount :charge_type :charge_unit :charge_id])
 
-(vector! :additional_charges :additional_charge)
+(vector! :additional_charges :additional_charge {:max 5})
 
 (string! :tag {:min 4 :max 12})
 (vector! :tags :tag {:min 0 :max 8})
 
 (enum! :metro ["SFBay" "NYMetro" "LAMetro"])
 
+(enum! :use_type ["Production" "Off-Site" "Event"])
+
 (document! :item
            [:_id :label :category :subcategory :active
             :visible_on_listing :unit_cost :unit_cost_basis]
-           [:image_ids :additional_charges :metro :tags])
-
-
+           [:image_ids :additional_charges :metro :use_type :tags])
 
 ;; regions
 ;; _id : string; human-readable; like brook or east_sf_bay
@@ -104,3 +104,18 @@
             :metro :description]
            [:tags])
 
+(string! :name {:min 2 :max 30 :meta {:sensible-values ["Jane Doe" "Carlos Ruis"]}})
+(string! :address {:min 5 :meta {:sensible-values ["123 Main St." "245 W. 52nd" "1A Unicorn Way"]}})
+(string! :address2 {:meta {:sensible-values ["Unit 101" "Suite 2A" "#42"]}})
+(string! :city {:meta {:sensible-values ["San Francisco" "Brooklyn" "Austin" "Burbank"]}})
+(string! :state {:min 2 :max 2 :meta {:sensible-values ["CA" "NY" "TX"]}})
+(string! :country {:meta {:sensible-values ["US"]}})
+(string! :zip {:regex-pattern "\\d{5}"})
+(string! :ein {:regex-pattern "\\d{2}-\\d{7}"})
+(string! :email {:regex-pattern ".+@.+\\..{2,20}" :meta {:sensible-values ["jane@acme.org" "mulan@cater.io"]}})
+(string! :phone {:min 10 :meta {:sensible-values ["(555) 555-1212" "(213) 555-1761"]}})
+
+(document! :vendor
+           [:_id :label :active :area :description
+            :name :address :city :state :zip :email :phone]
+           [:address2 :country :ein])

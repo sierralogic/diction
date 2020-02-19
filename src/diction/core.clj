@@ -567,7 +567,6 @@
 (defn generate-random-tuple
   "Generates a random tuple of elements `element-ids`"
   [element-ids]
-  (println :core/gen-rdm-tuple :element-ids element-ids)
   (reduce (fn [a eid]
             (conj a (generate-sensibly eid @sensible)))
           []
@@ -1442,11 +1441,8 @@
 (defn generate
   "Generates a valid value of element id `id`."
   [id]
-  ; (println :core/generate :id id)
   (when-let [entry (lookup id)]
-    ; (println :core/generate :entry entry)
     (when-let [gen-f (get-in entry [:element :gen-f])]
-      (println :core/generate :gen-f gen-f)
       (gen-f id entry))))
 
 (defn random-sensible-value
