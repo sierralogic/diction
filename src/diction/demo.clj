@@ -42,7 +42,10 @@
 (boolean! :active)
 
 (string! :category {:meta {:sensible-values ["cata" "catb" "catz"]}})
+
 (string! :subcategory {:meta {:sensible-values ["subcat1" "subcat2" "subcat99"]}})
+
+(vector! :categories :category)
 
 (boolean! :visible_on_listing)
 
@@ -78,7 +81,8 @@
 (set-of! :metros :metro)
 
 (document! :item/vendor
-           [:ref/vendor :ref/region])
+           [:ref/vendor :ref/region]
+           [:unit_cost :unit_cost_basis :additional_charges])
 
 (vector! :item/vendors :item/vendor)
 
@@ -107,7 +111,7 @@
 
 (tuple! :long-lat [:longitude :latitude])
 
-(vector! :long-lats :long-lat {:min 3 :max 15})
+(vector! :long-lats :long-lat {:min 3 :max 5})
 
 (vector! :geo/polygon :long-lats {:min 1 :max 1})
 
@@ -121,7 +125,7 @@
             :metro :description]
            [:tags])
 
-(string! :name {:min 2 :max 30 :meta {:sensible-values ["Jane Doe" "Carlos Ruis"]}})
+(string! :contact {:min 2 :max 30 :meta {:sensible-values ["Jane Doe" "Carlos Ruis"]}})
 (string! :address {:min 5 :meta {:sensible-values ["123 Main St." "245 W. 52nd" "1A Unicorn Way"]}})
 (string! :address2 {:meta {:sensible-values ["Unit 101" "Suite 2A" "#42"]}})
 (string! :city {:meta {:sensible-values ["San Francisco" "Brooklyn" "Austin" "Burbank"]}})
@@ -129,10 +133,13 @@
 (string! :country {:meta {:sensible-values ["US"]}})
 (string! :zip {:regex-pattern "\\d{5}"})
 (string! :ein {:regex-pattern "\\d{2}-\\d{7}"})
+(clone! :ein :tax_id)
 (string! :email {:regex-pattern ".+@.+\\..{2,20}" :meta {:sensible-values ["jane@acme.org" "mulan@cater.io"]}})
 (string! :phone {:min 10 :meta {:sensible-values ["(555) 555-1212" "(213) 555-1761"]}})
 
+(string! :vendor/name {:min 2 :max 30 :meta {:sensible-values ["Acme Hospitality" "Bars and Bells" "Frida's Good Eats"]}})
+(clone! :area :service_area)
 (document! :vendor
-           [:_id :label :active :area :description
-            :name :address :city :state :zip :email :phone]
-           [:address2 :country :metros :ein])
+           [:_id :vendor/name :active :description
+            :contact :address :city :state :zip :email :phone]
+           [:address2 :service_area :country :metros :tax_id])

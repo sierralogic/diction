@@ -4,6 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.0"]
+                 [cheshire "5.10.0"]
                  [clj-time "0.15.0"]
                  [com.velisco/strgen "0.1.8"]]
   :repositories [["github" {:url "https://maven.pkg.github.com/sierralogic/gpr"

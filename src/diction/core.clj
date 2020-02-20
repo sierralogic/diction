@@ -1,5 +1,6 @@
 (ns diction.core
-  (:require [clj-time.coerce :as c]
+  (:require [cheshire.core :as cheshire]
+            [clj-time.coerce :as c]
             [clj-time.core :as t]
             [clojure.edn :as edn]
             [clojure.pprint :as pp]
@@ -293,6 +294,17 @@
         keyword)))
 
 (def rndm (Random.))
+
+(defn ->json
+  "Convert map `m` to JSON string."
+  [m]
+  (cheshire/generate-string m {:pretty true}))
+
+(defn ->edn
+  "Convert JSON string `s` to map."
+  [s]
+  (when s
+    (cheshire/parse-string s true)))
 
 (defn apply-f-to-keys
   "Recursively transforms all map keys from keywords to strings."
@@ -1348,7 +1360,7 @@
   ([id vector-of-element-id] (vector! id vector-of-element-id nil nil))
   ([id vector-of-element-id element] (vector! id vector-of-element-id element nil))
   ([id vector-of-element-id element ctx]
-   (element! id (merge {:vector-of vector-of-element-id} element) ctx)))
+   (element! id (merge {:vector-of vector-of-element-id :type :vector} element) (merge ctx {:element vector-of-element-id}))))
 
 (defn poly-vector!
   "Register a poly vector (polyglot of element ids) element given element id `id`,
@@ -1356,7 +1368,7 @@
   ([id vector-of-element-ids] (poly-vector! id vector-of-element-ids nil nil))
   ([id vector-of-element-ids element] (poly-vector! id vector-of-element-ids element nil))
   ([id vector-of-element-ids element ctx]
-   (element! id (merge {:poly-vector-of vector-of-element-ids} element) ctx)))
+   (element! id (merge {:poly-vector-of vector-of-element-ids :type :poly-vector} element) (merge ctx {:elements vector-of-element-ids}))))
 
 (defn tuple!
   "Register a tuple (polyglot of element ids) element given element id `id`,
@@ -1364,7 +1376,7 @@
   ([id vector-of-element-ids] (tuple! id vector-of-element-ids nil nil))
   ([id vector-of-element-ids element] (tuple! id vector-of-element-ids element nil))
   ([id vector-of-element-ids element ctx]
-   (element! id (merge {:tuple vector-of-element-ids} element) ctx)))
+   (element! id (merge {:tuple vector-of-element-ids :type :tuple} element) (merge ctx {:elements vector-of-element-ids}))))
 
 (defn set-of!
   "Register a set element given element id `id`, set element id `set-of-element-id`, element
@@ -1372,7 +1384,7 @@
   ([id set-of-element-id] (set-of! id set-of-element-id nil nil))
   ([id set-of-element-id element] (set-of! id set-of-element-id element nil))
   ([id set-of-element-id element ctx]
-   (element! id (merge {:set-of set-of-element-id} element) ctx)))
+   (element! id (merge {:set-of set-of-element-id :type :set} element) (merge ctx {:element set-of-element-id}))))
 
 (defn document!
   "Register a document/map element given element id `id`, required unqualified nested element ids `req-un`,
@@ -1425,7 +1437,7 @@
   ([id enums] (enum! id enums nil nil))
   ([id enums element] (enum! id enums element nil))
   ([id enums element ctx]
-   (element! id (merge {:enum enums} element) ctx)))
+   (element! id (merge {:enum enums :type :enum} element) (merge ctx {:values enums}))))
 
 ;;; Base Elements ------------------------------------------------------------
 
@@ -1629,26 +1641,67 @@
   [x]
   (if-let [id (:id x)]
     (if (keyword? id)
-      (not= "diction" (namespace id))
+      (if-let [ns (namespace id)]
+        (not (str/starts-with? ns "diction"))
+        true)
       true)
     true))
 
-(defn index-entry
+(defn references
+  "Determine the documents that reference the element `element-id`."
+  [element-id]
+  (let [docs (filterv #(= (get-in % [:element :type]) :document) (vals @dictionary))]
+    (reduce (fn [a d]
+              (let [elem (:element d)
+                    refs (concat (:required elem) (:required-un elem) (:optional elem) (:optional-un elem))]
+                (if (empty? refs)
+                  a
+                  (if (contains? (into #{} refs) element-id)
+                    (conj (or a []) (:id d))
+                    a))))
+            nil
+            docs)))
+
+(defn summary-entry
   "Generates an index entry for element entry `entry`."
   [entry]
-  (let [element (:element entry)
+  (let [id (:id entry)
+        element (:element entry)
+        ctx (:ctx entry)
         type (:type element)
         meta (:meta element)
         lbl (:label meta)
         desc (:description meta)
+        elem (:element ctx)
+        elems (:elements ctx)
         help (:help meta)
+        enum-values (:values ctx)
+        required (:required element)
+        required-un (:required-un element)
+        optional (:optional element)
+        optional-un (:optional-un element)
+        referenced (references id)
+        refs (vec (sort (concat required required-un optional optional-un)))
         audit (:audit meta)]
     (merge {:id (:id entry)}
            (when type {:type type})
            (when lbl {:label lbl})
            (when desc {:description desc})
+           (when elem {:element elem})
+           (when elems {:elements elems})
+           (when referenced {:referenced_by referenced})
+           (when (not (empty? refs)) {:fields refs})
+           (when required {:required-fields required})
+           (when required-un {:required-unqualified-fields required-un})
+           (when optional {:optional-fields optional})
+           (when optional-un {:optional-unqualified-fields optional-un})
+           (when enum-values {:values enum-values})
            (when help {:help help})
            (when audit {:audit audit}))))
+
+(defn annotate-summary
+  [entry]
+  (assoc-in entry [:element :summary] (summary-entry entry)))
 
 (defn data-dictionary
   "Generates a data dictionary given current element definitions."
@@ -1657,11 +1710,12 @@
                              vals
                              (filter filter-out-diction-elements)
                              (sort-by :id))
-        fds (group-by document-or-field sorted-elements)
-        ndx (mapv index-entry sorted-elements)]
-    (merge {:index ndx}
+        nelems (mapv annotate-summary sorted-elements)
+        fds (group-by document-or-field nelems)
+        summary (mapv summary-entry sorted-elements)]
+    (merge {:summary summary}
            fds
-           {:elements (vec sorted-elements)})))
+           {:elements nelems})))
 
 ;;; Import / Export ========================================================
 
