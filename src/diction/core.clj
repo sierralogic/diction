@@ -1,6 +1,5 @@
 (ns diction.core
-  (:require [cheshire.core :as cheshire]
-            [clj-time.coerce :as c]
+  (:require [clj-time.coerce :as c]
             [clj-time.core :as t]
             [clojure.edn :as edn]
             [clojure.pprint :as pp]
@@ -8,10 +7,9 @@
             [clojure.string :as str]
             [clojure.test :refer [function?]]
             [clojure.test.check.generators :as gen]
-            [clojure.walk :as walk]
+            [diction.util :refer [->str vls?] :as util]
             [miner.strgen :as sg])
-  (:import (java.util UUID Random)
-           (org.joda.time DateTime)))
+  (:import (org.joda.time DateTime)))
 
 (def dictionary (atom nil))
 (defn dictionary! [d] (reset! dictionary d))
@@ -233,209 +231,99 @@
 
 ;;; Utilities --------------------------------------------------------------------
 
-(def joda-class (class (t/now)))
 (def years-millis (* 365 24 60 60 1000))
 
-(defn strict-int?
-  "Determines if `x` is a strict `int`."
-  [x]
-  (instance? Integer x))
+;(def default-label-replacements {"Id" "ID"
+;                                 "Ssn" "SSN"
+;                                 "Num" "No."
+;                                 "Cd" "Code"
+;                                 "Svc" "Service"
+;                                 "Pct" "Percent"
+;                                 "Roi" "ROI"
+;                                 "Mo" "Month"
+;                                 "Yr" "Year"
+;                                 "Wk" "Week"
+;                                 "Loe" "LOE"
+;                                 "No" "No."
+;                                 "Ein" "EIN"
+;                                 "Required Un" "Required Unqualified Fields"
+;                                 "Optional Un" "Optional Unqualified Fields"})
+;
+;(def label-replacements (atom default-label-replacements))
+;(defn label-replacements!
+;  "Sets the label replacements with `lrs` map.
+;  `lrs` should have the string key with only the first letter capitalized
+;  (`Id` no `id`), and the value the prettified word or abbreviation."
+;  [lrs]
+;  (reset! label-replacements lrs))
+;
+;(defn replace-with
+;  "Returns value in replacement map `rs` if the key `v` exists
+;  in `rs`.  Otherwise, returns `v`."
+;  [rs v]
+;  (get rs v v))
+;
+;(defn replace-labels
+;  "Replace label `v` with replacement, otherwise pass through `v`."
+;  [v]
+;  (replace-with @label-replacements v))
+;
+;(defn normalize-words
+;  "Normalize each word in `s`."
+;  [s]
+;  (->> s
+;       ->str
+;       str/lower-case
+;       (#(str/split % #" "))
+;       (map str/capitalize)
+;       (map replace-labels)
+;       (str/join " ")))
 
-(defn strict-long?
-  "Determines if `x` is strict `long`."
-  [x]
-  (instance? Long x))
-
-(defn strict-float?
-  "Determines if `x` is a strict `float`."
-  [x]
-  (instance? Float x))
-
-(defn strict-double?
-  "Determines if `x` is a strict `double`."
-  [x]
-  (instance? Double x))
-
-(defn joda?
-  "Determine if `x` is a Joda DateTime instance."
-  [x]
-  (when x
-    (= joda-class (class x))))
-
-(defn vls?
-  "Determines if `x` is a vector, set, or list."
-  [x]
-  (or (seq? x) (sequential? x)))
-
-(defn stack-assoc
-  "Associates key `k` and value `v` to map `m`."
-  [m k v]
-  (assoc m k (if-let [cv (get m k)]
-               (if (vls? cv)
-                 (conj cv v)
-                 [cv v])
-               [v])))
-
-(defn ->str
-  "Convert `x` to string."
-  [x]
-  (when x
-    (if (keyword? x)
-      (-> x str (subs 1))
-      (str x))))
-
-(defn ->kw
-  "Convert `xs to keyword."
-  [x]
-  (if (keyword? x)
-    x
-    (-> x
-        str
-        keyword)))
-
-(def rndm (Random.))
-
-(defn ->json
-  "Convert map `m` to JSON string."
-  [m]
-  (cheshire/generate-string m {:pretty true}))
-
-(defn ->edn
-  "Convert JSON string `s` to map."
-  [s]
-  (when s
-    (cheshire/parse-string s true)))
-
-(defn apply-f-to-keys
-  "Recursively transforms all map keys from keywords to strings."
-  {:added "1.1"}
-  [f m]
-  (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m))
-
-(defn ->snake
-  "Convert `s` to snake case."
-  [s]
-  (-> s
-      ->str
-      str/lower-case
-      (str/replace "-" "_")))
-
-(defn ->skewer
-  "Convert `s` to skewer case."
-  [s]
-  (-> s
-      ->str
-      str/trim
-      str/lower-case
-      (str/replace " " "-")
-      (str/replace "_" "-")))
-
-(defn ->skewer-kw
-  [x]
-  (-> x
-      ->skewer
-      keyword))
-
-(defn walk-apply-key-f
-  [kf kv]
-  (let [[k v] kv]
-    [(kf k) v]))
-
-(def snakify-keys (partial walk-apply-key-f ->snake))
-(def skewer-keys (partial walk-apply-key-f ->skewer-kw))
-
-(def snake-keys (partial apply-f-to-keys snakify-keys))
-(def skewer-keys (partial apply-f-to-keys skewer-keys))
-
-(def default-label-replacements {"Id" "ID"
-                                 "Ssn" "SSN"
-                                 "Num" "No."
-                                 "Cd" "Code"
-                                 "Svc" "Service"
-                                 "Pct" "Percent"
-                                 "Roi" "ROI"
-                                 "Mo" "Month"
-                                 "Yr" "Year"
-                                 "Wk" "Week"
-                                 "Loe" "LOE"
-                                 "No" "No."
-                                 "Ein" "EIN"})
-
-(def label-replacements (atom default-label-replacements))
-(defn label-replacements!
-  "Sets the label replacements with `lrs` map.
-  `lrs` should have the string key with only the first letter capitalized
-  (`Id` no `id`), and the value the prettified word or abbreviation."
-  [lrs]
-  (reset! label-replacements lrs))
-
-(defn replace-with
-  "Returns value in replacement map `rs` if the key `v` exists
-  in `rs`.  Otherwise, returns `v`."
-  [rs v]
-  (get rs v v))
-
-(defn replace-labels
-  "Replace label `v` with replacement, otherwise pass through `v`."
-  [v]
-  (replace-with @label-replacements v))
-
-(defn normalize-words
-  "Normalize each word in `s`."
-  [s]
-  (->> s
-       ->str
-       str/lower-case
-       (#(str/split % #" "))
-       (map str/capitalize)
-       (map replace-labels)
-       (str/join " ")))
-
-(defn labelize
-  "Converts `x` to a label."
-  [x]
-  (-> x
-      ->str
-      (str/replace "-" " ")
-      (str/replace "_" " ")
-      normalize-words
-      str/trim))
-
-(defn safe-nth
-  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
-  [c ndx]
-  (try
-    (nth c ndx)
-    (catch Exception _)))
-
-(defn random-int
-  "Generates random int."
-  []
-  (.nextInt rndm))
-
-(defn random-long
-  "Generates random long."
-  []
-  (.nextLong rndm))
-
-(defn random-float
-  "Generates random float."
-  []
-  (float (* (if (odd? (System/currentTimeMillis)) -1 1)
-            (float (rand))
-            (float (dec Float/MAX_VALUE)))))
-
-(defn random-double
-  "Generates random double."
-  []
-  (* (if (odd? (System/currentTimeMillis)) -1 1)
-     (rand)
-     (dec Double/MAX_VALUE)))
-
-(defn coin-toss?
-  "Equal chance for true or false."
-  []
-  (odd? (System/currentTimeMillis)))
+;(defn labelize
+;  "Converts `x` to a label."
+;  [x]
+;  (-> x
+;      ->str
+;      (str/replace "-" " ")
+;      (str/replace "_" " ")
+;      normalize-words
+;      str/trim))
+;
+;(defn safe-nth
+;  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
+;  [c ndx]
+;  (try
+;    (nth c ndx)
+;    (catch Exception _)))
+;
+;(defn random-int
+;  "Generates random int."
+;  []
+;  (.nextInt util/rndm))
+;
+;(defn random-long
+;  "Generates random long."
+;  []
+;  (.nextLong util/rndm))
+;
+;(defn random-float
+;  "Generates random float."
+;  []
+;  (float (* (if (odd? (System/currentTimeMillis)) -1 1)
+;            (float (rand))
+;            (float (dec Float/MAX_VALUE)))))
+;
+;(defn random-double
+;  "Generates random double."
+;  []
+;  (* (if (odd? (System/currentTimeMillis)) -1 1)
+;     (rand)
+;     (dec Double/MAX_VALUE)))
+;
+;(defn coin-toss?
+;  "Equal chance for true or false."
+;  []
+;  (odd? (System/currentTimeMillis)))
 
 (def document-keys-ns #{req-key opt-key})
 (def document-keys-un #{req-un-key opt-un-key})
@@ -514,9 +402,9 @@
   ([] (generate-random-joda nil nil))
   ([max] (generate-random-joda nil max))
   ([min max]
-   (let [norm-max (or (when max (if (joda? max) (c/to-long max) max))
+   (let [norm-max (or (when max (if (util/joda? max) (c/to-long max) max))
                       default-gen-joda-max)
-         norm-min (or (when min (if (joda? min) (c/to-long min) min))
+         norm-min (or (when min (if (util/joda? min) (c/to-long min) min))
                       default-gen-joda-min)
          df (try
               (- norm-max norm-min)
@@ -553,7 +441,7 @@
          (int (+ norm-min (int (* df (rand)))))
          (catch Exception _
            norm-max)))
-     (random-int))))
+     (util/random-int))))
 
 (def default-gen-long-min Long/MIN_VALUE)
 (def default-gen-long-max Long/MAX_VALUE)
@@ -575,7 +463,7 @@
          (long (+ norm-min (long (* df (rand)))))
          (catch Exception _
            norm-max)))
-     (random-long))))
+     (util/random-long))))
 
 (def default-gen-float-min (float Float/MIN_VALUE))
 (def default-gen-float-max (float Float/MAX_VALUE))
@@ -597,7 +485,7 @@
          (float (+ norm-min (* df (rand))))
          (catch Exception _
            (float norm-max))))
-     (random-float))))
+     (util/random-float))))
 
 (def default-gen-double-min Double/MIN_VALUE)
 (def default-gen-double-max Double/MAX_VALUE)
@@ -619,7 +507,7 @@
          (double (+ norm-min (* df (rand))))
          (catch Exception _
            norm-max)))
-     (random-double))))
+     (util/random-double))))
 
 (def default-gen-vector-min 0)
 (def default-gen-vector-max 16)
@@ -675,11 +563,6 @@
              #{}
              (range (+ norm-min (rand-int (inc df))))))))
 
-(defn generate-random-uuid
-  "Generates random UUID string."
-  []
-  (str (UUID/randomUUID)))
-
 (defn generate-nested-elements
   "Generates nested elements `element-ids` with optional flags `unqualified?` for
   element id keys and `optional?` for the nested elements."
@@ -688,7 +571,7 @@
   ([element-ids unqualified? optional?]
    (when-not (empty? element-ids)
      (reduce (fn [a element-id]
-               (if (or (not optional?) (coin-toss?))
+               (if (or (not optional?) (util/coin-toss?))
                  (let [k (if unqualified?
                            (if (keyword? element-id)
                              (keyword (name element-id))
@@ -786,8 +669,8 @@
                   (count vector-of-element-ids) " count not equal to actual tuple value count "
                   (count v) ".")}]
       (when-let [vofv (reduce (fn [acc ndx]
-                                (if-let [ev (explain (safe-nth vector-of-element-ids ndx)
-                                                     (safe-nth v ndx))]
+                                (if-let [ev (explain (util/safe-nth vector-of-element-ids ndx)
+                                                     (util/safe-nth v ndx))]
                                   (concat acc ev)
                                   acc))
                               nil
@@ -803,8 +686,8 @@
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a vector.")}]
     (if-let [vofv (reduce (fn [acc ndx]
-                            (if-let [ev (explain (safe-nth vector-of-element-ids ndx)
-                                                 (safe-nth v ndx))]
+                            (if-let [ev (explain (util/safe-nth vector-of-element-ids ndx)
+                                                 (util/safe-nth v ndx))]
                               (concat acc ev)
                               acc))
                           nil
@@ -852,13 +735,13 @@
   `id`, and entry `entry`."
   [min max
    v id entry]
-  (if-not (= joda-class (class v))
+  (if-not (= util/joda-class (class v))
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a Joda datetime.")}]
-    (if-not (if min (t/after? v (if (joda? min) min (DateTime. min))) true)
+    (if-not (if min (t/after? v (if (util/joda? min) min (DateTime. min))) true)
       [{:id id :entry entry :v v
         :msg (str "Failed '" id "': value '" v "' is before than min. (min=" min "; " (DateTime. min) ")")}]
-      (when-not (if max (t/before? v (if (joda? max) max (DateTime. max))) true)
+      (when-not (if max (t/before? v (if (util/joda? max) max (DateTime. max))) true)
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is after than max. (max=" max "; " (DateTime. max) ")")}]))))
 
@@ -874,7 +757,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (strict-int? v)
+  (if-not (util/strict-int? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not an int number.")}]
     (if-not (if min (>= v min) true)
@@ -889,7 +772,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (strict-long? v)
+  (if-not (util/strict-long? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a long number.")}]
     (if-not (if min (>= v min) true)
@@ -904,7 +787,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (strict-float? v)
+  (if-not (util/strict-float? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a float number.")}]
     (if-not (if min (>= v min) true)
@@ -919,7 +802,7 @@
   `id`, and element `entry`."
   [min max
    v id entry]
-  (if-not (strict-double? v)
+  (if-not (util/strict-double? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a double number.")}]
     (if-not (if min (>= v min) true)
@@ -941,7 +824,7 @@
                                     element-id)
                                   element-id))]
                (if-let [rvr (explain element-id rv)]
-                 (concat a (map #(stack-assoc % :parent-element-id parent-element-id) rvr))
+                 (concat a (map #(util/stack-assoc % :parent-element-id parent-element-id) rvr))
                  a)
                (if-not optional?
                  (concat a [{:required-element-id element-id
@@ -1230,14 +1113,14 @@
      (swap! dictionary assoc id entry)
      entry)))
 
-(defn polite-assoc
-  "Politely associate key `k` with value `v` to map `m` iff there is no existing entry for
-  `k` and `v` in `m`."
-  [m k v]
-  (when (and k v)
-    (if-let [xv (get m k)]
-      m
-      (assoc m k v))))
+;(defn polite-assoc
+;  "Politely associate key `k` with value `v` to map `m` iff there is no existing entry for
+;  `k` and `v` in `m`."
+;  [m k v]
+;  (when (and k v)
+;    (if-let [xv (get m k)]
+;      m
+;      (assoc m k v))))
 
 (defn resolve-unqualified
   "Resolve unqualified element keys given entitiy maps `es` and the
@@ -1245,7 +1128,7 @@
   [key es]
   (vals (reduce #(if-let [fs (get %2 key)]
                                       (reduce (fn [a ek]
-                                                (polite-assoc a (name ek) ek))
+                                                (util/polite-assoc a (name ek) ek))
                                               %
                                               fs)
                                       %)
@@ -1689,7 +1572,7 @@
            (when desc {:description desc})
            (when elem {:element elem})
            (when elems {:elements elems})
-           (when referenced {:referenced_by referenced})
+           (when referenced {:referenced-by referenced})
            (when (not (empty? refs)) {:fields refs})
            (when required {:required-fields required})
            (when required-un {:required-unqualified-fields required-un})
@@ -1701,7 +1584,27 @@
 
 (defn annotate-summary
   [entry]
-  (assoc-in entry [:element :summary] (summary-entry entry)))
+  (let [id (:id entry)
+        element (:element entry)
+        ctx (:ctx entry)
+        type (:type element)
+        meta (:meta element)
+        lbl (:label meta)
+        desc (:description meta)
+        elem (:element ctx)
+        elems (:elements ctx)
+        help (:help meta)
+        enum-values (:values ctx)
+        required (:required element)
+        required-un (:required-un element)
+        optional (:optional element)
+        optional-un (:optional-un element)
+        referenced (references id)
+        refs (vec (sort (concat required required-un optional optional-un)))
+        audit (:audit meta)]
+    (-> entry
+        (assoc-in [:element :summary] (summary-entry entry))
+        (util/polite-assoc-in [:element :referenced-by] referenced))))
 
 (defn data-dictionary
   "Generates a data dictionary given current element definitions."

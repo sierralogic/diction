@@ -1,7 +1,8 @@
 (ns diction.demo
   (:require [diction.core :refer [clone! enum! generate string! long! set-of! pos-double! double! boolean! vector! document!
                                   poly-vector! tuple!] :as dict]
-            [diction.documentation :as doc]))
+            [diction.documentation :as doc]
+            [diction.util :as util]))
 
 
 ;;x_id : MongoDB OID unique id

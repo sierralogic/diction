@@ -2,8 +2,9 @@
   (:require [clojure.walk :as walk]
             [diction.core :refer [generate explain int! float! string! uuid! joda! element! document! validation-rule!
                                   explain-all meta-query groom valid-all? groom function! test-function test-all-functions
-                                  lookup enum! inherit! clone! double! long! vector! keyword! generate-random-uuid]
-             :as diction]))
+                                  lookup enum! inherit! clone! double! long! vector! keyword!]
+             :as diction]
+            [diction.util :as util]))
 
 ;;; Elements ==============================================================
 
@@ -131,7 +132,7 @@
 
 (defn decoration-rule-keys-to-snake
   [v entry rule ctx]
-  (diction/snake-keys v))
+  (util/snake-keys v))
 
 (diction/decoration-rule! ::item
                           :calculate-item-inventory-retail-worth
@@ -147,7 +148,7 @@
 
 (defn undecoration-rule-keys-to-skewer
   [v entry rule ctx]
-  (diction/skewer-keys v))
+  (util/skewer-keys v))
 
 (diction/undecoration-rule! ::item
                             :item-keys-to-skewer
