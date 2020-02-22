@@ -150,6 +150,7 @@
 
 
 (def default-label-replacements {"Id" "ID"
+                                 "Ids" "IDs"
                                  "Ssn" "SSN"
                                  "Num" "No."
                                  "Cd" "Code"
@@ -162,8 +163,8 @@
                                  "Loe" "LOE"
                                  "No" "No."
                                  "Ein" "EIN"
-                                 "Required Un" "Required Unqualified Fields"
-                                 "Optional Un" "Optional Unqualified Fields"})
+                                 "Required Un" "Required (Unqualified)"
+                                 "Optional Un" "Optional (Unqualified)"})
 
 (def label-replacements (atom default-label-replacements))
 

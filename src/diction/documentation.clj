@@ -54,31 +54,79 @@
           []
           document-element-keys))
 
-(def exclude-element-fields [:gen-f :valid-f :optional-un-m :required-un-m :required-m :optional-m :regex])
+(def exclude-element-fields [:meta :gen-f :valid-f :optional-un-m :required-un-m :required-m :optional-m :regex :summary])
 
 (def reference-keys #{:fields :vector-of :set-of :tuple :id
                       :required-fields :required-unqualified-fields
                       :required :required-un
+                      :reference
                       :optional-fields :optional-unqualified-fields
+                      :optional-unqualified
+                      :required-unqualified
                       :optional :optional-un
                       :referenced-by})
+
+(defn doc-value
+  "Wrap value `x` with double-quotes if `x` is string."
+  [x]
+  (if (string? x)
+    (str "\"" x "\"")
+    (->str x)))
+
+(defn decorate-value
+  "Decorate value `v`.  Currently passes through maps, but comma-delimits collections."
+  ([v] (decorate-value nil v))
+  ([vf v]
+   (when-not (nil? v)
+     (let [nvf (or vf doc-value)]
+       (if (util/vls? v)
+         (str (reduce (fn [a2 n]
+                        (str a2 (if (> n 0) ", " " ") (nvf (util/safe-nth v n))))
+                      "["
+                      (range (count v)))
+              " ]")
+         (nvf v))))))
+
+(def decorate-local-link-value (partial decorate-value local-link))
 
 (defn element-bullet
   "Generate element bullet for key `k` and value `v` and optional set `ref-ks`
   that add local link refs if key `k` in `ref-ks`."
   ([k v] (element-bullet nil k v))
   ([ref-ks k v]
+   (let [pre (str bullet "**" (util/replace-labels (labelize k)) "**" kv-sep)
+         xref-ks (or ref-ks reference-keys)]
+     (if (contains? xref-ks k)
+       (str pre (decorate-local-link-value v))
+       (str pre (decorate-value v))))))
+
+(defn element-bullet-legacy
+  "Generate element bullet for key `k` and value `v` and optional set `ref-ks`
+  that add local link refs if key `k` in `ref-ks`."
+  ([k v] (element-bullet-legacy nil k v))
+  ([ref-ks k v]
    (let [pre (str bullet "**" (labelize k) "**" kv-sep)
          xref-ks (or ref-ks reference-keys)]
      (if (contains? xref-ks k)
        (if (util/vls? v)
-         (str pre (reduce (fn [a2 vv]
-                            (str a2 " " (local-link vv)))
+         (str pre (reduce (fn [a2 n]
+                            (str a2 (if (> n 0) ", " " ") (local-link (util/safe-nth v n))))
                           "["
-                          v)
+                          (range (count v)))
               " ]")
          (str pre (local-link v)))
        (str pre v)))))
+
+(defn map->markdown
+  "Convert meta `meta` for element `id` with optional `level`."
+  ([m] (map->markdown nil m))
+  ([level m]
+  (when (map? m)
+    (let [idt (indent (or level 1))]
+      (reduce-kv (fn [a k v]
+                   (str a idt (element-bullet k v) "\n"))
+                 "\n"
+                 m)))))
 
 (defn ->markdown-elements
   "Generate markdown elements `elems` given existing string `body` and
@@ -89,12 +137,16 @@
                  nelem (apply dissoc (cons elem exclude-element-fields))
                  lbl (labelize (:label %2 eid))
                  sks (sort (keys nelem))
+                 meta (:meta elem)
+                 metas (when meta
+                         (str bullet "**" (labelize :meta) "**" kv-sep
+                              (map->markdown meta)))
                  hdr (str % "<a name=\"" (->anchor eid) "\"></a>\n\n### " lbl "\n\n")
                  dmd (reduce (fn [a k]
                                (str a (element-bullet k (get nelem k)) "\n"))
                              ""
                              sks)]
-             (str hdr dmd "\n"))
+             (str hdr dmd metas "\n"))
           (str body "## " title "\n\n")
           elems))
 
