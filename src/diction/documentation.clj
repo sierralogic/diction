@@ -100,6 +100,13 @@
        (str pre (decorate-local-link-value v))
        (str pre (decorate-value v))))))
 
+(defn index-bullet
+  "Generate index bullet for key `id` and optional label `lbl`."
+  ([id] (index-bullet id nil))
+  ([id lbl]
+   (str bullet (decorate-local-link-value id)
+        (when lbl (str " (" lbl ")")))))
+
 (defn element-bullet-legacy
   "Generate element bullet for key `k` and value `v` and optional set `ref-ks`
   that add local link refs if key `k` in `ref-ks`."
@@ -127,6 +134,15 @@
                    (str a idt (element-bullet k v) "\n"))
                  "\n"
                  m)))))
+
+(defn index->markdown
+  "Generate index markdown using data dictionary `fields`."
+  [fields]
+  (reduce #(let [{:keys [element id]} %2
+                 lbl (get-in element [:meta :label])]
+             (str % (index-bullet id lbl) "\n"))
+          ""
+          fields))
 
 (defn ->markdown-elements
   "Generate markdown elements `elems` given existing string `body` and
@@ -158,8 +174,11 @@
    (let [dd (diction/data-dictionary)
          ntitle (or title "Data Dictionary")
          generated (Date.)
-         header (str "# " ntitle "\n*generated: " generated "*\n\n")
+         headerx (str "# " ntitle "\n*generated: " generated "*\n\n")
          {:keys [summary fields documents]} dd
+         document-index (str "## Document Index\n\n" (index->markdown documents) "\n")
+         field-index (str "## Field Index\n\n" (index->markdown fields) "\n")
+         header (str headerx document-index field-index "\n")
          md (reduce #(let [eid (:id %2 "unk")
                            lbl (labelize (:label %2 eid))
                            hdrx (str % "<a href=\"#" (->anchor eid) "\">\n\n### " lbl "\n</a>\n\n")
