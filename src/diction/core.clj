@@ -14,11 +14,11 @@
 (def dictionary (atom nil))
 (defn dictionary! [d] (reset! dictionary d))
 
-(defn clear-dictionary!
-  "Clears the `dictionary` completely to `nil`.  You must re-register the
-  dictionary after."
-  []
-  (dictionary! nil))
+;(defn clear-dictionary!
+;  "Clears the `dictionary` completely to `nil`.  You must re-register the
+;  dictionary after."
+;  []
+;  (dictionary! nil))
 
 (def sensible (atom true))
 (defn sensible! [s] (reset! sensible s))

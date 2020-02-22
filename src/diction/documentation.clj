@@ -80,11 +80,12 @@
    (when-not (nil? v)
      (let [nvf (or vf doc-value)]
        (if (util/vls? v)
-         (str (reduce (fn [a2 n]
-                        (str a2 (if (> n 0) ", " " ") (nvf (util/safe-nth v n))))
-                      "["
-                      (range (count v)))
-              " ]")
+         (let [nv (vec v)]
+           (str (reduce (fn [a2 n]
+                          (str a2 (if (> n 0) ", " " ") (nvf (util/safe-nth nv n))))
+                        "["
+                        (range (count nv)))
+                " ]"))
          (nvf v))))))
 
 (def decorate-local-link-value (partial decorate-value local-link))

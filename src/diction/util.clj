@@ -64,7 +64,7 @@
 (defn vls?
   "Determines if `x` is a vector, set, or list."
   [x]
-  (or (seq? x) (sequential? x)))
+  (or (sequential? x) (set? x)))
 
 (defn stack-assoc
   "Associates key `k` and value `v` to map `m`."
