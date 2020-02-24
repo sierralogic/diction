@@ -517,11 +517,14 @@
   Default min is 0.  Default max is 16."
   ([element-id] (generate-random-vector element-id nil nil))
   ([element-id max] (generate-random-vector element-id nil max))
-  ([element-id min max]
-   (let [norm-max (or max default-gen-vector-max)
-         norm-min (or min default-gen-vector-min)
+  ([element-id min max] (generate-random-vector element-id min max nil))
+  ([element-id min max meta]
+   (let [sensible-min (when @sensible (:sensible-min meta))
+         sensible-max (when @sensible (:sensible-max meta))
+         norm-max (or sensible-max max default-gen-vector-max)
+         norm-min (or sensible-min min default-gen-vector-min)
          df (- norm-max norm-min)]
-     (reduce (fn [a _] (conj a (generate-sensibly element-id @sensible)))
+     (reduce (fn [a _] (conj a (generate-sensibly element-id)))
              []
              (range (+ norm-min (rand-int (inc df))))))))
 
@@ -529,22 +532,24 @@
   "Generates a random tuple of elements `element-ids`"
   [element-ids]
   (reduce (fn [a eid]
-            (conj a (generate-sensibly eid @sensible)))
+            (conj a (generate-sensibly eid)))
           []
           element-ids))
 
 (defn generate-random-poly-vector
   "Generates a random poly vector of elements `element-ids` given optional minimum size `min` and maximum size `max`.
   Default min is 0.  Default max is 16."
-  ([element-ids] (generate-random-poly-vector element-ids nil nil))
-  ([element-ids max] (generate-random-poly-vector element-ids nil max))
-  ([element-ids min max]
-   (println :core/gen-rdm-poly-v :element-ids element-ids :min min :max max)
-   (let [norm-max (or max default-gen-vector-max)
-         norm-min (or min default-gen-vector-min)
+  ([element-ids] (generate-random-poly-vector element-ids nil nil nil))
+  ([element-ids max] (generate-random-poly-vector element-ids nil max nil))
+  ([element-ids min max] (generate-random-poly-vector element-ids min max nil))
+  ([element-ids min max meta]
+   (let [sensible-min (when @sensible (:sensible-min meta))
+         sensible-max (when @sensible (:sensible-max meta))
+         norm-max (or sensible-max max default-gen-vector-max)
+         norm-min (or sensible-min min default-gen-vector-min)
          df (- norm-max norm-min)]
      (reduce (fn [a _] (conj a (reduce (fn [acc element-id]
-                                         (conj acc (generate-sensibly element-id @sensible)))
+                                         (conj acc (generate-sensibly element-id)))
                                        []
                                        element-ids)))
              []
@@ -553,13 +558,16 @@
 (defn generate-random-set
   "Generates a random set of element `element-id` given optional minimum size `min` and maximum size `max`.
   Default min is 0.  Default max is 16."
-  ([element-id] (generate-random-set element-id nil max))
-  ([element-id max] (generate-random-set element-id nil max))
-  ([element-id min max]
-   (let [norm-max (or max default-gen-vector-max)
-         norm-min (or min default-gen-vector-min)
+  ([element-id] (generate-random-set element-id nil max nil))
+  ([element-id max] (generate-random-set element-id nil max nil))
+  ([element-id min max] (generate-random-set element-id min max nil))
+  ([element-id min max meta]
+   (let [sensible-min (when @sensible (:sensible-min meta))
+         sensible-max (when @sensible (:sensible-max meta))
+         norm-max (or sensible-max max default-gen-vector-max)
+         norm-min (or sensible-min min default-gen-vector-min)
          df (- norm-max norm-min)]
-     (reduce (fn [a _] (set/union a #{(generate-sensibly element-id @sensible)}))
+     (reduce (fn [a _] (set/union a #{(generate-sensibly element-id)}))
              #{}
              (range (+ norm-min (rand-int (inc df))))))))
 
@@ -577,7 +585,7 @@
                              (keyword (name element-id))
                              element-id)
                            element-id)]
-                   (assoc a k (generate-sensibly element-id @sensible)))
+                   (assoc a k (generate-sensibly element-id)))
                  a))
              nil
              element-ids))))
@@ -976,7 +984,8 @@
                         (wrap-gen-f (partial generate-random-vector
                                              vof
                                              (:min m)
-                                             (:max m))))
+                                             (:max m)
+                                             (:meta m))))
              :valid-f (or (:valid-f m)
                           (partial validate-vector-of vof (:min m) (:max m))))
     m))
@@ -1002,7 +1011,8 @@
                         (wrap-gen-f (partial generate-random-poly-vector
                                              vof
                                              (:min m)
-                                             (:max m))))
+                                             (:max m)
+                                             (:meta m))))
              :valid-f (or (:valid-f m)
                           (partial validate-poly-vector-of vof (:min m) (:max m))))
     m))
@@ -1016,7 +1026,8 @@
                         (wrap-gen-f (partial generate-random-set
                                              vof
                                              (:min m)
-                                             (:max m))))
+                                             (:max m)
+                                             (:meta m))))
              :valid-f (or (:valid-f m)
                           (partial validate-set-of vof (:min m) (:max m))))
     m))
@@ -1143,7 +1154,6 @@
   (if (empty? req-un)
     opt-un
     (into #{} (let [req-un-names (into #{} (map name req-un))]
-                (println :resolve-req-opt-un :req-un-names req-un-names)
                 (reduce #(if (contains? req-un-names (name %2))
                            %
                            (cons %2 %))
@@ -1189,7 +1199,6 @@
                                     ctxs))))
          resolved-entities (apply resolve-merged-entities (cons element parent-elements))
          sm (merge {:id id} resolved-entities)
-         _ (println :merge-entities! :parent-elements parent-elements :parent-ids parent-ids :element element :sm sm :parent-ctxs parent-ctxs)
          merged-ctx (merge parent-ctxs ctx)]
      (element! id sm merged-ctx))))
 
@@ -1411,20 +1420,20 @@
   flag is `false` or `nil`.
   If no sensible values are found and optional `generate-as-fallback?` flag
   is `truthy`, then attempt to generate value for element `id`."
-  ([id] (random-sensible-value id nil))
+  ([id] (random-sensible-value id true))
   ([id generate-as-fallback?]
-  (when-let [entry (lookup id)]
-    (if-let [svs (get-in entry [:element :meta :sensible-values])]
-      (if-not (empty? svs)
-        (nth svs (Math/floor (* (rand) (count svs))))
-        (when generate-as-fallback? (generate id)))
-      (when generate-as-fallback? (generate id))))))
+   (when-let [entry (lookup id)]
+     (if-let [svs (when @sensible (get-in entry [:element :meta :sensible-values]))]
+       (if-not (empty? svs)
+         (nth svs (Math/floor (* (rand) (count svs))))
+         (when generate-as-fallback? (generate id)))
+       (when generate-as-fallback? (generate id))))))
 
 (defn generate-sensibly
   "Generates a sensible value for element with `id` and optional `generate-as-fallback?`
   flag to use the generative function for the element if no sensible values
   exist in the meta of the element (:element :meta :sensible-values)."
-  ([id] (generate-sensibly id nil))
+  ([id] (generate-sensibly id true))
   ([id generate-as-fallback?]
    (random-sensible-value id generate-as-fallback?)))
 

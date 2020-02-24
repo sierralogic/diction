@@ -166,7 +166,9 @@
     :type :boolean}
 
    {:id :additional_charges
-    :meta {:description "Additional charges"}
+    :meta {:description "Additional charges"
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :additional_charge}
 
@@ -297,7 +299,9 @@
     :enum ["LAMetro" "NYMetro" "SFBay"]}
 
    {:id :metros
-    :meta {:description "Set of metro areas"}
+    :meta {:description "Set of metro areas"
+           :sensible-min 1
+           :sensible-max 3}
     :type :set
     :set-of :metro}
 
@@ -324,16 +328,20 @@
 
    {:id :tag
     :meta {:description "Smart tag"
-           :sensible-values ["tag1" "tag2" "tag99"]}
+           :sensible-values ["tag1" "tag2" "tag3"
+                             "tag4" "tag5" "tag6"
+                             "tag99"]}
     :type :string
     :min 2
     :max 32}
 
    {:id :tags
-    :meta {:description "Smart tags"}
+    :meta {:description "Smart tags"
+           :sensible-min 1
+           :sensible-max 4}
     :type :set
     :set-of :tag
-    :min 0
+    :min 1
     :max 12}
 
    {:id :tax_id
@@ -548,10 +556,12 @@
     (register-f elem)))
 
 (defn import!
+  "Import element `elem` to diction data dictionary."
   [elem]
   (register-element! elem))
 
 (defn imports!
+  "Imports elements `elements` to diction data dictionary."
   [elements]
   (let [res (reduce #(conj (or % []) (import! %2))
                     nil
