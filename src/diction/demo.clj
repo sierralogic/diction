@@ -193,7 +193,9 @@
     :type :double}
 
    {:id :categories
-    :meta {:description "Categories"}
+    :meta {:description "Categories"
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :category}
 
@@ -218,14 +220,14 @@
 
    {:id :city
     :meta {:description "City/village"
-           :sensible-values ["New York" "Philadelphia" "San Francisco"]}
+           :sensible-values ["New York" "Philadelphia" "San Francisco" "Virginia City"]}
     :type :string
     :min 0
     :max 64}
 
    {:id :contact
     :meta {:description "Contact info"
-           :sensible-values ["Jane Doe" "Carlos Ruiz"]}
+           :sensible-values ["Jane Doe" "Carlos Ruiz" "Thuyen Gnuyen"]}
     :type :string
     :min 2
     :max 100}
@@ -254,8 +256,7 @@
     :regex-pattern ".+@.+..{2,20}"}
 
    {:id :image_id
-    :meta {:description "Cloudinary image id"
-           :sensible-values nil}
+    :meta {:description "Cloudinary image id"}
     :type :string
     :min 4
     :max 8}
@@ -282,11 +283,13 @@
     :tuple [:longitude :latitude]}
 
    {:id :long-lats
-    :meta {:description "List of longitude/latitude pairs."}
+    :meta {:description "List of longitude/latitude pairs."
+           :sensible-min 1
+           :sensible-max 1}
     :type :vector
     :vector-of :long-lat
     :min 1
-    :max 3}
+    :max 10}
 
    {:id :longitude
     :meta {:description "Longitude geo (-180 - 180)"}
@@ -395,7 +398,9 @@
     :enum ["Multipolygon"]}
 
    {:id :item/vendors
-    :meta {:description "List of vendors per item"}
+    :meta {:description "List of vendors per item"
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :item/vendor}
 
@@ -405,7 +410,9 @@
     :clone :moid}
 
    {:id :ref/regions
-    :meta {:description "List of region ids"}
+    :meta {:description "List of region ids"
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :ref/region}
 
@@ -415,11 +422,13 @@
     :clone :moid}
 
    {:id :ref/vendors
-    :meta {:description "List of vendor ids"}
+    :meta {:description "List of vendor ids"
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :ref/vendor
     :min 0
-    :max 3}
+    :max 20}
 
    {:id :vendor/name
     :meta {:description "Vendor name"
@@ -436,7 +445,7 @@
    ;; documents
 
    {:id :additional_charge
-    :meta {:description ""}
+    :meta {:description "Additional charge"}
     :type :document
     :required-un [:label :amount :charge_type :charge_unit :charge_id]}
 
@@ -488,86 +497,91 @@
 
   )
 
-(defn clean
-  [elem]
-  (dissoc elem :type :id))
+;(defn clean
+;  [elem]
+;  (dissoc elem :type :id))
+;
+;(defn import-document!
+;  "Import the document element `elem`."
+;  [elem]
+;  (let [{:keys [id required required-un optional optional-un]} elem]
+;    (document! id required required-un optional optional-un (clean elem) nil)))
+;
+;(defn import-clone!
+;  "Import a clone element `elem`."
+;  [elem]
+;  (clone! (:clone elem) (:id elem) (clean elem)))
+;
+;(defn import-element!
+;  "Import element `elem` with optional diction function `diction-f`."
+;  ([elem] (import-element! string! elem))
+;  ([diction-f elem]
+;   (diction-f (:id elem) elem)))
+;
+;(defn import-ofs!
+;  "Import collection of `of-key` elements for element `elem` with the diction
+;  `register-f` function."
+;  [register-f of-key elem]
+;  (let [{:keys [id]} elem
+;        of (get elem of-key)]
+;    (register-f id of (clean elem))))
+;
+;(def import-vector! (partial import-ofs! vector! :vector-of))
+;(def import-poly-vector! (partial import-ofs! poly-vector! :poly-vector-of))
+;(def import-set! (partial import-ofs! set-of! :set-of))
+;(def import-enum! (partial import-ofs! enum! :enum))
+;(def import-tuple! (partial import-ofs! tuple! :tuple))
+;
+;(def import-string! (partial import-element! string!))
+;(def import-double! (partial import-element! double!))
+;(def import-pos-double! (partial import-element! pos-double!))
+;(def import-neg-double! (partial import-element! neg-double!))
+;(def import-long! (partial import-element! long!))
+;(def import-float! (partial import-element! float!))
+;(def import-pos-float! (partial import-element! pos-float!))
+;(def import-neg-float! (partial import-element! neg-float!))
+;(def import-boolean! (partial import-element! boolean!))
+;
+;(def types->functions
+;  {:string import-string!
+;   :document import-document!
+;   :double import-double!
+;   :pos-double import-pos-double!
+;   :neg-double import-neg-double!
+;   :long import-long!
+;   :float import-float!
+;   :pos-float import-pos-float!
+;   :neg-float import-neg-float!
+;   :vector import-vector!
+;   :set import-set!
+;   :enum import-enum!
+;   :tuple import-tuple!
+;   :poly-vector import-poly-vector!
+;   :boolean import-boolean!
+;   :clone import-clone!})
+;
+;(defn register-element!
+;  "Register element `elem` using declarative data."
+;  [elem]
+;  (let [nelem (if (:clone elem)
+;                (assoc elem :type :clone)
+;                elem)
+;        type (:type nelem :string)
+;        register-f (get types->functions type import-string!)]
+;    (register-f elem)))
+;
+;(defn import!
+;  "Import element `elem` to diction data dictionary."
+;  [elem]
+;  (register-element! elem))
+;
+;(defn imports!
+;  "Imports elements `elements` to diction data dictionary."
+;  [elements]
+;  (let [res (reduce #(conj (or % []) (import! %2))
+;                    nil
+;                    elements)]
+;
+;    res))
 
-(defn import-document!
-  [elem]
-  (let [{:keys [id required required-un optional optional-un]} elem]
-    (document! id required required-un optional optional-un (clean elem) nil)))
-
-(defn import-clone!
-  [elem]
-  (clone! (:clone elem) (:id elem) (clean elem)))
-
-(defn import-element!
-  ([elem] (import-element! string! elem))
-  ([diction-f elem]
-   (diction-f (:id elem) elem)))
-
-(defn import-ofs!
-  [register-f of-key elem]
-  (let [{:keys [id]} elem
-        of (get elem of-key)]
-    (register-f id of (clean elem))))
-
-(def import-vector! (partial import-ofs! vector! :vector-of))
-(def import-poly-vector! (partial import-ofs! poly-vector! :poly-vector-of))
-(def import-set! (partial import-ofs! set-of! :set-of))
-(def import-enum! (partial import-ofs! enum! :enum))
-(def import-tuple! (partial import-ofs! tuple! :tuple))
-
-(def import-string! (partial import-element! string!))
-(def import-double! (partial import-element! double!))
-(def import-pos-double! (partial import-element! pos-double!))
-(def import-neg-double! (partial import-element! neg-double!))
-(def import-long! (partial import-element! long!))
-(def import-float! (partial import-element! float!))
-(def import-pos-float! (partial import-element! pos-float!))
-(def import-neg-float! (partial import-element! neg-float!))
-(def import-boolean! (partial import-element! boolean!))
-
-(def types->functions
-  {:string import-string!
-   :document import-document!
-   :double import-double!
-   :pos-double import-pos-double!
-   :neg-double import-neg-double!
-   :long import-long!
-   :float import-float!
-   :pos-float import-pos-float!
-   :neg-float import-neg-float!
-   :vector import-vector!
-   :set import-set!
-   :enum import-enum!
-   :tuple import-tuple!
-   :poly-vector import-poly-vector!
-   :boolean import-boolean!
-   :clone import-clone!})
-
-(defn register-element!
-  "Register element `elem` using declarative data."
-  [elem]
-  (let [nelem (if (:clone elem)
-                (assoc elem :type :clone)
-                elem)
-        type (:type nelem :string)
-        register-f (get types->functions type import-string!)]
-    (register-f elem)))
-
-(defn import!
-  "Import element `elem` to diction data dictionary."
-  [elem]
-  (register-element! elem))
-
-(defn imports!
-  "Imports elements `elements` to diction data dictionary."
-  [elements]
-  (let [res (reduce #(conj (or % []) (import! %2))
-                    nil
-                    elements)]
-
-    res))
-
-(register-element! {:id :answer :type :long :min 40 :max 63 :meta {:description "The answers are out there."}})
+; (register-element! {:id :answer :type :long :min 40 :max 63 :meta {:description "The answers are out there."}})

@@ -14,6 +14,7 @@
 (def dictionary (atom nil))
 (defn dictionary! [d] (reset! dictionary d))
 
+
 ;(defn clear-dictionary!
 ;  "Clears the `dictionary` completely to `nil`.  You must re-register the
 ;  dictionary after."
@@ -22,6 +23,9 @@
 
 (def sensible (atom true))
 (defn sensible! [s] (reset! sensible s))
+
+(def ^:dynamic *force-sensible* nil)
+(def ^:dynamic *generate-all-fields* nil)
 
 (declare initialize-diction-elements!)
 (declare explain)
@@ -233,98 +237,6 @@
 
 (def years-millis (* 365 24 60 60 1000))
 
-;(def default-label-replacements {"Id" "ID"
-;                                 "Ssn" "SSN"
-;                                 "Num" "No."
-;                                 "Cd" "Code"
-;                                 "Svc" "Service"
-;                                 "Pct" "Percent"
-;                                 "Roi" "ROI"
-;                                 "Mo" "Month"
-;                                 "Yr" "Year"
-;                                 "Wk" "Week"
-;                                 "Loe" "LOE"
-;                                 "No" "No."
-;                                 "Ein" "EIN"
-;                                 "Required Un" "Required Unqualified Fields"
-;                                 "Optional Un" "Optional Unqualified Fields"})
-;
-;(def label-replacements (atom default-label-replacements))
-;(defn label-replacements!
-;  "Sets the label replacements with `lrs` map.
-;  `lrs` should have the string key with only the first letter capitalized
-;  (`Id` no `id`), and the value the prettified word or abbreviation."
-;  [lrs]
-;  (reset! label-replacements lrs))
-;
-;(defn replace-with
-;  "Returns value in replacement map `rs` if the key `v` exists
-;  in `rs`.  Otherwise, returns `v`."
-;  [rs v]
-;  (get rs v v))
-;
-;(defn replace-labels
-;  "Replace label `v` with replacement, otherwise pass through `v`."
-;  [v]
-;  (replace-with @label-replacements v))
-;
-;(defn normalize-words
-;  "Normalize each word in `s`."
-;  [s]
-;  (->> s
-;       ->str
-;       str/lower-case
-;       (#(str/split % #" "))
-;       (map str/capitalize)
-;       (map replace-labels)
-;       (str/join " ")))
-
-;(defn labelize
-;  "Converts `x` to a label."
-;  [x]
-;  (-> x
-;      ->str
-;      (str/replace "-" " ")
-;      (str/replace "_" " ")
-;      normalize-words
-;      str/trim))
-;
-;(defn safe-nth
-;  "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."
-;  [c ndx]
-;  (try
-;    (nth c ndx)
-;    (catch Exception _)))
-;
-;(defn random-int
-;  "Generates random int."
-;  []
-;  (.nextInt util/rndm))
-;
-;(defn random-long
-;  "Generates random long."
-;  []
-;  (.nextLong util/rndm))
-;
-;(defn random-float
-;  "Generates random float."
-;  []
-;  (float (* (if (odd? (System/currentTimeMillis)) -1 1)
-;            (float (rand))
-;            (float (dec Float/MAX_VALUE)))))
-;
-;(defn random-double
-;  "Generates random double."
-;  []
-;  (* (if (odd? (System/currentTimeMillis)) -1 1)
-;     (rand)
-;     (dec Double/MAX_VALUE)))
-;
-;(defn coin-toss?
-;  "Equal chance for true or false."
-;  []
-;  (odd? (System/currentTimeMillis)))
-
 (def document-keys-ns #{req-key opt-key})
 (def document-keys-un #{req-un-key opt-un-key})
 
@@ -519,8 +431,8 @@
   ([element-id max] (generate-random-vector element-id nil max))
   ([element-id min max] (generate-random-vector element-id min max nil))
   ([element-id min max meta]
-   (let [sensible-min (when @sensible (:sensible-min meta))
-         sensible-max (when @sensible (:sensible-max meta))
+   (let [sensible-min (when (or @sensible *force-sensible*) (:sensible-min meta))
+         sensible-max (when (or @sensible *force-sensible*) (:sensible-max meta))
          norm-max (or sensible-max max default-gen-vector-max)
          norm-min (or sensible-min min default-gen-vector-min)
          df (- norm-max norm-min)]
@@ -579,7 +491,7 @@
   ([element-ids unqualified? optional?]
    (when-not (empty? element-ids)
      (reduce (fn [a element-id]
-               (if (or (not optional?) (util/coin-toss?))
+               (if (or (not optional?) (util/coin-toss?) *generate-all-fields*)
                  (let [k (if unqualified?
                            (if (keyword? element-id)
                              (keyword (name element-id))
@@ -1423,7 +1335,7 @@
   ([id] (random-sensible-value id true))
   ([id generate-as-fallback?]
    (when-let [entry (lookup id)]
-     (if-let [svs (when @sensible (get-in entry [:element :meta :sensible-values]))]
+     (if-let [svs (when (or @sensible *force-sensible*) (get-in entry [:element :meta :sensible-values]))]
        (if-not (empty? svs)
          (nth svs (Math/floor (* (rand) (count svs))))
          (when generate-as-fallback? (force-generate id)))
@@ -1793,15 +1705,15 @@
     (catch Exception _
       "")))
 
-(defn import-elements!
-  [dm]
-  (when-let [es (:elements dm)]
-    (reduce #(let [{:keys [id parent-id ctx]} %2
-                   args [id %2 ctx]
-                   pargs (if parent-id (cons parent-id args) args)]
-               (conj (or % []) (apply element! pargs)))
-            nil
-            es)))
+;(defn import-elements!
+;  [dm]
+;  (when-let [es (:elements dm)]
+;    (reduce #(let [{:keys [id parent-id ctx]} %2
+;                   args [id %2 ctx]
+;                   pargs (if parent-id (cons parent-id args) args)]
+;               (conj (or % []) (apply element! pargs)))
+;            nil
+;            es)))
 
 (def export-exclude-prefix "diction")
 
@@ -1823,6 +1735,98 @@
   [target]
   (spit target {:elements (export-elements!)}))
 
-(defn import-elements-from!
+;(defn import-elements-from!
+;  [source]
+;  (import-elements! (-> source slurp edn/read-string)))
+
+(defn clean
+  [elem]
+  (dissoc elem :type :id))
+
+(defn import-document!
+  "Import the document element `elem`."
+  [elem]
+  (let [{:keys [id required required-un optional optional-un]} elem]
+    (document! id required required-un optional optional-un (clean elem) nil)))
+
+(defn import-clone!
+  "Import a clone element `elem`."
+  [elem]
+  (clone! (:clone elem) (:id elem) (clean elem)))
+
+(defn import-element!
+  "Import element `elem` with optional diction function `diction-f`."
+  ([elem] (import-element! string! elem))
+  ([diction-f elem]
+   (diction-f (:id elem) elem)))
+
+(defn import-ofs!
+  "Import collection of `of-key` elements for element `elem` with the diction
+  `register-f` function."
+  [register-f of-key elem]
+  (let [{:keys [id]} elem
+        of (get elem of-key)]
+    (register-f id of (clean elem))))
+
+(def import-vector! (partial import-ofs! vector! :vector-of))
+(def import-poly-vector! (partial import-ofs! poly-vector! :poly-vector-of))
+(def import-set! (partial import-ofs! set-of! :set-of))
+(def import-enum! (partial import-ofs! enum! :enum))
+(def import-tuple! (partial import-ofs! tuple! :tuple))
+
+(def import-string! (partial import-element! string!))
+(def import-double! (partial import-element! double!))
+(def import-pos-double! (partial import-element! pos-double!))
+(def import-neg-double! (partial import-element! neg-double!))
+(def import-long! (partial import-element! long!))
+(def import-float! (partial import-element! float!))
+(def import-pos-float! (partial import-element! pos-float!))
+(def import-neg-float! (partial import-element! neg-float!))
+(def import-boolean! (partial import-element! boolean!))
+
+(def types->functions
+  {:string import-string!
+   :document import-document!
+   :double import-double!
+   :pos-double import-pos-double!
+   :neg-double import-neg-double!
+   :long import-long!
+   :float import-float!
+   :pos-float import-pos-float!
+   :neg-float import-neg-float!
+   :vector import-vector!
+   :set import-set!
+   :enum import-enum!
+   :tuple import-tuple!
+   :poly-vector import-poly-vector!
+   :boolean import-boolean!
+   :clone import-clone!})
+
+(defn register-element!
+  "Register element `elem` using declarative data."
+  [elem]
+  (let [nelem (if (:clone elem)
+                (assoc elem :type :clone)
+                elem)
+        type (:type nelem :string)
+        register-f (get types->functions type import-string!)]
+    (register-f elem)))
+
+(defn import!
+  "Import element `elem` to diction data dictionary."
+  [elem]
+  (register-element! elem))
+
+(defn imports!
+  "Imports elements `elements` to diction data dictionary."
+  [elements]
+  (let [res (reduce #(conj (or % []) (import! %2))
+                    nil
+                    elements)]
+
+    res))
+
+(defn import-from-file!
+  "Import elements from `source` file."
   [source]
-  (import-elements! (-> source slurp edn/read-string)))
+  (imports! (-> source slurp edn/read-string)))

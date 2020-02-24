@@ -1,7 +1,7 @@
 (ns diction.documentation
   (:require [clojure.string :as str]
             [diction.core :as diction]
-            [diction.util :refer [labelize] :as util])
+            [diction.util :refer [labelize ->json] :as util])
   (:import (java.util Date)))
 
 (def kv-sep ": ")
@@ -162,8 +162,20 @@
                  dmd (reduce (fn [a k]
                                (str a (element-bullet k (get nelem k)) "\n"))
                              ""
-                             sks)]
-             (str hdr dmd metas "\n"))
+                             sks)
+                 document? (= (:type elem) :document)
+                 examplex (binding [diction/*force-sensible* true
+                                   diction/*generate-all-fields* true]
+                           (diction/generate eid))
+                 example (if document? (into (sorted-map) examplex)
+                                       examplex)
+                 normalized-example (->json example)
+                 dmdx (str dmd
+                           "- **Example**:\n"
+                           "```json\n"
+                           normalized-example
+                           "\n```\n")]
+             (str hdr metas dmdx "\n"))
           (str body "## " title "\n\n")
           elems))
 
@@ -172,7 +184,8 @@
   "Convert existing data dictionary into markdown with optional `title`."
   ([] (->markdown nil))
   ([title]
-   (let [dd (diction/data-dictionary)
+   (let [dd (binding [diction/*force-sensible* true]
+              (diction/data-dictionary))
          ntitle (or title "Data Dictionary")
          generated (Date.)
          headerx (str "# " ntitle "\n*generated: " generated "*\n\n")
@@ -182,7 +195,7 @@
          header (str headerx document-index field-index "\n")
          md (reduce #(let [eid (:id %2 "unk")
                            lbl (labelize (:label %2 eid))
-                           hdrx (str % "<a href=\"#" (->anchor eid) "\">\n\n### " lbl "\n</a>\n\n")
+                           ; hdrx (str % "<a href=\"#" (->anchor eid) "\">\n\n### " lbl "\n</a>\n\n")
                            hdr (str % "\n### " lbl "\n\n")
                            kys (sort (keys %2))
                            sflds (reduce (fn [a k]
@@ -192,6 +205,6 @@
                        (str hdr sflds "\n"))
                     (str header "## Summary\n\n")
                     summary)
-         dmds (->markdown-elements documents md "Documents")
+         dmds (->markdown-elements documents header "Documents")
          fmds (->markdown-elements fields dmds "Fields")]
      fmds)))
