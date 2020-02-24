@@ -7,6 +7,7 @@
                                   pos-int! neg-int! int!
                                   string!
                                   boolean!
+                                  force-generate
                                   vector! set-of! tuple! poly-vector! enum!
                                   document!] :as diction]
             [diction.documentation :as doc]

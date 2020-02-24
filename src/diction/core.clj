@@ -1406,7 +1406,7 @@
 
 ;;;; Element Functions --------------------------------------------------------------------------
 
-(defn generate
+(defn force-generate
   "Generates a valid value of element id `id`."
   [id]
   (when-let [entry (lookup id)]
@@ -1426,8 +1426,8 @@
      (if-let [svs (when @sensible (get-in entry [:element :meta :sensible-values]))]
        (if-not (empty? svs)
          (nth svs (Math/floor (* (rand) (count svs))))
-         (when generate-as-fallback? (generate id)))
-       (when generate-as-fallback? (generate id))))))
+         (when generate-as-fallback? (force-generate id)))
+       (when generate-as-fallback? (force-generate id))))))
 
 (defn generate-sensibly
   "Generates a sensible value for element with `id` and optional `generate-as-fallback?`
@@ -1436,6 +1436,8 @@
   ([id] (generate-sensibly id true))
   ([id generate-as-fallback?]
    (random-sensible-value id generate-as-fallback?)))
+
+(def generate generate-sensibly)
 
 (defn explain
   "Explains validation failures for element `id` against element value `v` as a vector of maps with validation
