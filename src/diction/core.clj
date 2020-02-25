@@ -1268,6 +1268,28 @@
 (def diction-uuid :diction/uuid)
 (def diction-joda :diction/joda)
 
+(def boolean! (partial inherit! diction-boolean))
+(def int! (partial inherit! diction-int))
+(def pos-int! (partial inherit! diction-int-pos))
+(def neg-int! (partial inherit! diction-int-neg))
+
+(def long! (partial inherit! diction-long))
+(def pos-long! (partial inherit! diction-long-pos))
+(def neg-long! (partial inherit! diction-long-neg))
+
+(def float! (partial inherit! diction-float))
+(def pos-float! (partial inherit! diction-float-pos))
+(def neg-float! (partial inherit! diction-float-neg))
+
+(def double! (partial inherit! diction-double))
+(def pos-double! (partial inherit! diction-double-pos))
+(def neg-double! (partial inherit! diction-double-neg))
+
+(def string! (partial inherit! diction-string))
+(def keyword! (partial inherit! diction-keyword))
+(def uuid! (partial inherit! diction-uuid))
+(def joda! (partial inherit! diction-joda))
+
 (defn initialize-diction-elements!
   []
 
@@ -1292,29 +1314,16 @@
   (element! diction-string {:type :string :min 0 :max 64})
   (element! diction-keyword {:type :keyword :min 1 :max 64})
   (element! diction-uuid {:type :string :min 0 :max 36 :regex-pattern uuid-regex-pattern :meta {:label "UUID" :description "UUID String"}})
-  (element! diction-joda {:type :joda :meta {:label "Joda Datetime" :description "Joda Date Time"}}))
+  (element! diction-joda {:type :joda :meta {:label "Joda Datetime" :description "Joda Date Time"}})
 
-(def boolean! (partial inherit! diction-boolean))
-(def int! (partial inherit! diction-int))
-(def pos-int! (partial inherit! diction-int-pos))
-(def neg-int! (partial inherit! diction-int-neg))
+  (string! :diction/foo {:meta {:sensible-values ["bar" "baz" "bah"]}})
+  (long! :diction/ans {:meta {:sensible-values [41 42 43 99]}})
 
-(def long! (partial inherit! diction-long))
-(def pos-long! (partial inherit! diction-long-pos))
-(def neg-long! (partial inherit! diction-long-neg))
+  (document! :diction/foobar [:diction/foo] [:diction/ans])
 
-(def float! (partial inherit! diction-float))
-(def pos-float! (partial inherit! diction-float-pos))
-(def neg-float! (partial inherit! diction-float-neg))
 
-(def double! (partial inherit! diction-double))
-(def pos-double! (partial inherit! diction-double-pos))
-(def neg-double! (partial inherit! diction-double-neg))
+  )
 
-(def string! (partial inherit! diction-string))
-(def keyword! (partial inherit! diction-keyword))
-(def uuid! (partial inherit! diction-uuid))
-(def joda! (partial inherit! diction-joda))
 
 ;;;; Element Functions --------------------------------------------------------------------------
 
