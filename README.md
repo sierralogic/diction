@@ -679,7 +679,7 @@ of the wrapped function call).
 (guard-fail-f! (fn [eid wrapped-f v value-extract-f failures & args]
                         (println :failed-validation :eid eid :v v :failures failures :args args)))
 
-(def guarded-meh! (guard/guard :meh meh!))
+(def guarded-meh! (guard :meh meh!))
 
 (guarded-meh! "this is a string meh so good")
 
