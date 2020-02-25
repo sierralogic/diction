@@ -61,11 +61,11 @@
 
 (defn validate
   "Validation of request payload wrapped function."
-  [route-lookup request-key v-type handler]
+  [route-lookup-f request-key v-type handler]
   (fn [request]
     (if-let [element-id (-> request
                             ->route
-                            route-lookup)]
+                            route-lookup-f)]
       (let [v (get request request-key)]
         (if-let [invalid-messages (diction/explain element-id v)]
           (@bad-request-response-f {:error (str v-type " validation failed for element '"
