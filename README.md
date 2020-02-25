@@ -635,7 +635,7 @@ The default bad request function simple returns the `body` with a `400`
 
 ```clojure
 {:status 400,
- :body {:error "Payloadx validation failed for element ':diction/foobar'. [failure count=1]",
+ :body {:error "Payload validation failed for element ':diction/foobar'. [failure count=1]",
         :body {:foo "this", :ans true},
         :element :diction/foobar,
         :failures [{:id :diction/ans,
@@ -653,6 +653,46 @@ The default bad request function simple returns the `body` with a `400`
                     :v true,
                     :msg "Failed ':diction/ans': value 'true' is not a long number.",
                     :parent-element-id [:diction/foobar]}]}}
+```
+
+## Guard Functions
+
+Guard functions may wrap other functions, like storing to the db or calling
+other services or functions, to validate one of the arguments in the target
+wrapped function against a diction element.
+
+```clojure
+[diction.guard :as guard]
+
+(guard/guard element-id wrapped-function-f)
+(guard/guard element-id extract-from-args-list-f wrapped-function-f )
+```
+
+The `guard/guard` is a higher-order function that returns a wrapper function
+with validation against any single argument (defaults to the `first` argument
+of the wrapped function call).
+
+### Example
+
+```clojure
+(diction/string! :meh)
+
+(defn meh!
+  [meh]
+  (println "success:" meh))
+
+(guard/guard-fail-f! (fn [eid wrapped-f v value-extract-f failures & args]
+                        (println :failed-validation :eid eid :v v :failures failures :args args)))
+
+(def guarded-meh! (guard/guard :meh meh!))
+
+(guarded-meh! "this is a string meh so good")
+
+;=> success: this is a string meh so good
+
+(guarded-meh! 42)
+
+;=> :failed-validation :eid :meh :v 42 :failures [{:id :meh, :entry {:id :meh, :element {:id :meh, :type :string, :min 0, :max 64, :gen-f #object[diction.core$wrap_gen_f$fn__4362 0x57c94c2d diction.core$wrap_gen_f$fn__4362@57c94c2d], :valid-f #object[clojure.core$partial$fn__5828 0x5d4c4bd3 clojure.core$partial$fn__5828@5d4c4bd3], :parent-id :diction/string}}, :v 42, :msg Failed ':meh': value '42' is not a string.}] :args (42)
 ```
 
 ## License
