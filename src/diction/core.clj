@@ -507,11 +507,11 @@
   [element-id]
   (when-let [entry (lookup element-id)]
     (let [m (:element entry)]
-      (merge
-        (generate-nested-elements (req-key m))
-        (generate-nested-elements (req-un-key m) true)
-        (generate-nested-elements (opt-key m) false true)
-        (generate-nested-elements (opt-un-key m) true true)))))
+      (into (sorted-map) (merge
+                           (generate-nested-elements (req-key m))
+                           (generate-nested-elements (req-un-key m) true)
+                           (generate-nested-elements (opt-key m) false true)
+                           (generate-nested-elements (opt-un-key m) true true))))))
 
 ;;; Validators --------------------------------------------------------------------------------
 

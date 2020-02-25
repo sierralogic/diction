@@ -458,7 +458,7 @@
     :meta {:description "Inventory item"}
     :type :document
     :required-un [:_id :label :category :subcategory :active :visible_on_listing :unit_cost :unit_cost_basis]
-    :optional-un [:image_ids :additional_charges :metro :use_type :tags :ref/regions :item/vendors]}
+    :optional-un [:categories :image_ids :additional_charges :metro :use_type :tags :ref/regions :item/vendors]}
 
    {:id :region
     :meta {:description "Region with geo JSON polygon"}

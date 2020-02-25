@@ -164,6 +164,7 @@
                              ""
                              sks)
                  document? (= (:type elem) :document)
+                 doc-note (when document? " (required and optional field(s))")
                  examplex (binding [diction/*force-sensible* true
                                    diction/*generate-all-fields* true]
                            (diction/generate eid))
@@ -171,7 +172,7 @@
                                        examplex)
                  normalized-example (->json example)
                  dmdx (str dmd
-                           "- **Example**:\n"
+                           "- **Example**:" doc-note "\n"
                            "```json\n"
                            normalized-example
                            "\n```\n")]
