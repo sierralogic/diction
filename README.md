@@ -693,6 +693,20 @@ of the wrapped function call).
 (guarded-meh! 42)
 
 ;=> :failed-validation :eid :meh :v 42 :failures [{:id :meh, :entry {:id :meh, :element {:id :meh, :type :string, :min 0, :max 64, :gen-f #object[diction.core$wrap_gen_f$fn__4362 0x57c94c2d diction.core$wrap_gen_f$fn__4362@57c94c2d], :valid-f #object[clojure.core$partial$fn__5828 0x5d4c4bd3 clojure.core$partial$fn__5828@5d4c4bd3], :parent-id :diction/string}}, :v 42, :msg Failed ':meh': value '42' is not a string.}] :args (42)
+
+(defn meh2!
+  [id meh]
+  (println "success2: " :id id :meh meh))
+
+(def guarded-meh2! (guard :meh second meh2!)) ; note the `second` args extract function
+
+(guarded-meh2! 42 "string")
+
+;=> success2:  :id 42 :meh string
+
+(guarded-meh2! 42 34)
+;=> :failed-validation :eid :meh :v 34 :failures [{:id :meh, :entry {:id :meh, :element {:id :meh, :type :string, :min 0, :max 64, :gen-f #object[diction.core$wrap_gen_f$fn__4362 0x57c94c2d diction.core$wrap_gen_f$fn__4362@57c94c2d], :valid-f #object[clojure.core$partial$fn__5828 0x5d4c4bd3 clojure.core$partial$fn__5828@5d4c4bd3], :parent-id :diction/string}}, :v 34, :msg Failed ':meh': value '34' is not a string.}] :args (42 34)
+
 ```
 
 ## License
