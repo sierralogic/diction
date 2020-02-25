@@ -77,5 +77,5 @@
           (handler request)))
       (handler request))))
 
-(def validate-payload (partial validate ->payload-element-id :body "Payloadx"))
-(def validate-parameters (partial validate ->parameter-element-id :params "Parameterx"))
+(def validate-payload (partial validate ->payload-element-id :body "Payload"))
+(def validate-parameters (partial validate ->parameter-element-id :params "Parameter"))

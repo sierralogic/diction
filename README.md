@@ -574,7 +574,87 @@ work intelligently with their data.
 ;=>
 [{:id :diction.example/tau, :label "tau vs. pi", :pii true, :rank 4, :foo false}]
 ```
-  
+
+## HTTP Request Validations
+
+; (compojure.core/wrap-routes validate-payload)
+; (compojure.core/wrap-routes validate-parameters)
+
+### Wrapping Handlers
+
+In the handler ns of your application, wrap the routes with `diction.http`
+functions `validate-payload` and `validate-parameters`.
+
+```clojure
+(ns something.handler
+  (:require [compojure.core :refer [wrap-routes]]
+            [diction.http :as diction-http]))
+;...
+  (wrap-routes diction-http/validate-payload)
+  (wrap-routes diction-http/validate-parameters)
+;...
+
+``` 
+
+### Payload
+
+```clojure
+(payload-validation-routes!
+  "/item" {:post :item-payload-document-element-id}
+  "/customer" {:post :customer-payload-element-id})
+```
+
+### Parameters
+
+```clojure
+(parameter-validation-routes!
+  "/item" {:get :item-parameters-document-element-id}
+  "/customer" {:post :customer-parameters-element-id})
+```
+
+### Validation Failed Handler Function
+
+The `@diction.http/bad-request-f` is the function with a single `body`
+argument for handling validation failure.
+
+To reset the `bad-request-f` atom:
+
+```clojure
+(bad-request-f! (fn [body] {:status 400 :body body))
+```
+
+The default bad request function simple returns the `body` with a `400`
+`status`:
+
+```clojure
+{:status 400
+ :body {}}
+```
+
+#### Sample Validation Failure
+
+```clojure
+{:status 400,
+ :body {:error "Payloadx validation failed for element ':diction/foobar'. [failure count=1]",
+        :body {:foo "this", :ans true},
+        :element :diction/foobar,
+        :failures [{:id :diction/ans,
+                    :entry {:id :diction/ans,
+                            :element {:id :diction/ans,
+                                      :type :long,
+                                      :gen-f #object[diction.core$wrap_gen_f$fn__5023
+                                                     0x4728a22b
+                                                     "diction.core$wrap_gen_f$fn__5023@4728a22b"],
+                                      :valid-f #object[clojure.core$partial$fn__5826
+                                                       0x39e086dc
+                                                       "clojure.core$partial$fn__5826@39e086dc"],
+                                      :parent-id :diction/long,
+                                      :meta {:sensible-values [41 42 43 99]}}},
+                    :v true,
+                    :msg "Failed ':diction/ans': value 'true' is not a long number.",
+                    :parent-element-id [:diction/foobar]}]}}
+```
+
 ## License
 
 Copyright © 2019 SierraLogic LLC
