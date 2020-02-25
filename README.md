@@ -620,16 +620,11 @@ argument for handling validation failure.
 To reset the `bad-request-f` atom:
 
 ```clojure
-(bad-request-f! (fn [body] {:status 400 :body body))
+(bad-request-f! (fn [body] [:bad body {:message "Bad validation stuff"}]))
 ```
 
 The default bad request function simple returns the `body` with a `400`
-`status`:
-
-```clojure
-{:status 400
- :body {}}
-```
+`status`.
 
 #### Sample Validation Failure
 
@@ -662,10 +657,10 @@ other services or functions, to validate one of the arguments in the target
 wrapped function against a diction element.
 
 ```clojure
-[diction.guard :as guard]
+[diction.guard :refer [guard guard-fail-f!]]
 
-(guard/guard element-id wrapped-function-f)
-(guard/guard element-id extract-from-args-list-f wrapped-function-f )
+(guard element-id wrapped-function-f)
+(guard element-id extract-from-args-list-f wrapped-function-f )
 ```
 
 The `guard/guard` is a higher-order function that returns a wrapper function
@@ -681,7 +676,7 @@ of the wrapped function call).
   [meh]
   (println "success:" meh))
 
-(guard/guard-fail-f! (fn [eid wrapped-f v value-extract-f failures & args]
+(guard-fail-f! (fn [eid wrapped-f v value-extract-f failures & args]
                         (println :failed-validation :eid eid :v v :failures failures :args args)))
 
 (def guarded-meh! (guard/guard :meh meh!))
