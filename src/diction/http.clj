@@ -7,7 +7,7 @@
 ;; Payload/Parameters Route Dictions and Invalid Response Function
 
 (def default-payload-validaton-routes
-  {"/diction-echo" {:post :diction/string}})
+  {"/diction-echo" {:post :diction/foobar}})
 
 (def payload-validation-routes (atom default-payload-validaton-routes))
 (defn payload-validation-routes!
@@ -59,38 +59,23 @@
 
 ;; Validatation routes
 
-(defn validate-payload
+(defn validate
   "Validation of request payload wrapped function."
-  [handler]
+  [route-lookup request-key v-type handler]
   (fn [request]
     (if-let [element-id (-> request
                             ->route
-                            ->payload-element-id)]
-      (let [{:keys [body]} request]
-        (if-let [invalid-messages (diction/explain element-id body)]
-          (@bad-request-response-f {:error (str "Payload validation failed for element '"
+                            route-lookup)]
+      (let [v (get request request-key)]
+        (if-let [invalid-messages (diction/explain element-id v)]
+          (@bad-request-response-f {:error (str v-type " validation failed for element '"
                                                 element-id "'. [failure count="
                                                 (count invalid-messages) "]")
-                                    :payload body
+                                    request-key v
                                     :element element-id
                                     :failures invalid-messages})
           (handler request)))
       (handler request))))
 
-(defn validate-parameters
-  "Validation of request parameters wrapped function."
-  [handler]
-  (fn [request]
-    (if-let [element-id (-> request
-                            ->route
-                            ->parameter-element-id)]
-      (let [{:keys [params]} request
-            parameters (if (map? params) params {})]
-        (if-let [invalid-messages (diction/explain element-id parameters)]
-          (@bad-request-response-f {:error (str "Parameter validation failed for element '"
-                                                element-id "'. [failure count="
-                                                (count invalid-messages) "]")
-                                    :element element-id
-                                    :failures invalid-messages})
-          (handler request)))
-      (handler request))))
+(def validate-payload (partial validate ->payload-element-id :body "Payloadx"))
+(def validate-parameters (partial validate ->parameter-element-id :params "Parameterx"))
