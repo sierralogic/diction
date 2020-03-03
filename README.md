@@ -703,15 +703,17 @@ Diction data dictionary into markdown.
 (diction.documentation/->markdown)
 ```
 
-The markdown may be spit into a text file:
+The markdown may be `spit` into a text file:
 
 ```clojure
 (spit "data-dictionary.md" (diction.documentation/->markdown))
 ```
 
-When in Github wiki page, the generated data dictionary markdown is 
-`navigatable`, meaning that a user may click on all of related data elements 
-to see the info for those related data elements details.
+When added to a Github wiki page, the generated data dictionary markdown is 
+`navigatable`, meaning that a user may click on related data elements 
+to view the information for those related data elements (such as a data
+element referenced by a `document` will have a link to the referencing
+`document` data element).
 
 ## License
 
