@@ -57,7 +57,7 @@
     {:method request-method
      :uri uri}))
 
-;; Validatation routes
+;; Validation routes
 
 (defn validate
   "Validation of request payload wrapped function."

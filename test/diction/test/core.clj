@@ -1,4 +1,4 @@
-(ns diction.core-test
+(ns diction.test.core
   (:require [clj-time.core :as t]
             [clojure.test :refer :all]
             [diction.core :refer :all]))

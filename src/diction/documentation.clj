@@ -180,7 +180,6 @@
           (str body "## " title "\n\n")
           elems))
 
-
 (defn ->markdown
   "Convert existing data dictionary into markdown with optional `title`."
   ([] (->markdown nil))

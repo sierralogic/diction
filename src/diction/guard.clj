@@ -1,6 +1,8 @@
 (ns diction.guard
   (:require [diction.core :refer [explain generate] :as diction]))
 
+(def ^:dynamic *guard-fail-dynamic-f* nil)
+
 (defn default-guard-fail-f
   "Default `guard-fail-f` function with signature [eid f v xvf failures & args]."
   [element-id f v xvf failures & args]
@@ -11,7 +13,7 @@
           :extract xvf
           :failures failures
           :element element-id
-          :args args}})
+          :args (vec args)}})
 
 (def guard-fail-f (atom default-guard-fail-f))
 (defn guard-fail-f!
@@ -33,5 +35,5 @@
      (let [xvf (or v-extract-f first)
            v (xvf args)]
        (if-let [failures (explain element-id v)]
-         (apply @guard-fail-f (concat [element-id f v xvf failures] args))
+         (apply (or *guard-fail-dynamic-f* @guard-fail-f) (concat [element-id f v xvf failures] args))
          (apply f args))))))
