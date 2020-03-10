@@ -145,6 +145,14 @@
           ""
           fields))
 
+(defn generate-all
+  "Generates an element `element-id` with forced `sensible-values` to `true`
+  and `generate-all-fields` to `true`."
+  [element-id]
+  (binding [diction/*force-sensible* true
+            diction/*generate-all-fields* true]
+    (diction/generate element-id)))
+
 (defn ->markdown-elements
   "Generate markdown elements `elems` given existing string `body` and
   `title` of the section."

@@ -171,7 +171,7 @@
            :sensible-min 1
            :sensible-max 3}
     :type :vector
-    :vector-of :additional_charge}
+    :vector-of :item/additional_charge}
 
    {:id :address
     :meta {:description "Street address"
@@ -197,9 +197,19 @@
            :sensible-min 1
            :sensible-max 3}
     :type :vector
-    :vector-of :category}
+    :vector-of :name/category}
 
-   {:id :category
+   {:id :category_id
+    :meta {:description "Category id"}
+    :clone :moid}
+
+   {:id :category_ids
+    :meta {:description "Category Ids"
+           :sensible-min 1 :sensible-max 3}
+    :type :vector
+    :vector-of :category_id}
+
+   {:id :name/category
     :meta {:description "Category"
            :sensible-values ["Photography" "Lunch" "Dinner" "Snack" "Breakfast"]}
     :type :string}
@@ -255,14 +265,44 @@
     :type :string
     :regex-pattern ".+@.+..{2,20}"}
 
+   {:id :name
+    :meta {:description "Name or label"
+           :sensible-values ["Name #1" "Name A" "Name as such"]}
+    :type :string
+    :min 1
+    :max 100}
+
+   {:id :contact_email
+    :clone :email
+    :meta {:description "Contact email address"
+           :sensible-values ["jane@acme.org" "mulan@cater.io"]}}
+
+   {:id :notification_email
+    :clone :email
+    :meta {:description "Automated notification address"
+           :sensible-values ["orders@acme.org" "fulfilment@cater.io"]}}
+
+   {:id :notes
+    :type :string
+    :meta {:description "Notes"
+           :sensible-values ["Some notes" "Notes are here" "And more notes"]}}
+
+   {:id :rank
+    :meta {:description "Sort ranking"
+           :sensible-values [0 100 200 1000]}
+    :type :long}
+
    {:id :image_id
-    :meta {:description "Cloudinary image id"}
+    :meta {:description "Cloudinary image id"
+           :sensible-values ["img123" "img_abc" "image-xyz"]}
     :type :string
     :min 4
     :max 8}
 
    {:id :image_ids
-    :meta {:description "Vector of image ids."}
+    :meta {:description "Vector of image ids."
+           :sensible-min 1
+           :sensible-max 3}
     :type :vector
     :vector-of :image_id}
 
@@ -353,6 +393,11 @@
     :type :string
     :regex-pattern "\\d{2}-\\d{7}" }
 
+   {:id :payment_id
+    :meta {:description "Payment identifer"
+           :payment_service "stripe"}
+    :type :string}
+
    {:id :unit_cost
     :meta {:description "Cost per unit"
            :sensible-values [32.32 99.32 1.23]}
@@ -404,31 +449,43 @@
     :type :vector
     :vector-of :item/vendor}
 
-   {:id :ref/region
+   {:id :region_id
     :meta {:description "Region id"
            :reference :region}
     :clone :moid}
 
-   {:id :ref/regions
+   ;{:id :ref/region
+   ; :clone :region_id}
+
+   {:id :region_ids
     :meta {:description "List of region ids"
            :sensible-min 1
            :sensible-max 3}
     :type :vector
-    :vector-of :ref/region}
+    :vector-of :region_id}
 
-   {:id :ref/vendor
+   ;{:id :ref/regions
+   ; :clone :region_ids}
+
+   {:id :vendor_id
     :meta {:description "Vendor id"
            :reference :vendor}
     :clone :moid}
 
-   {:id :ref/vendors
+   ;{:id :ref/vendor
+   ; :clone :vendor_id}
+
+   {:id :vendor_ids
     :meta {:description "List of vendor ids"
            :sensible-min 1
            :sensible-max 3}
     :type :vector
-    :vector-of :ref/vendor
+    :vector-of :vendor_id
     :min 0
     :max 20}
+
+   ;{:id :ref/vendors
+   ; :clone :vendor_ids}
 
    {:id :vendor/name
     :meta {:description "Vendor name"
@@ -444,47 +501,79 @@
 
    ;; documents
 
-   {:id :additional_charge
+   {:id :label/category
+    :meta {:description "Category string label"
+           :sensible-values ["Category #1" "Category A" "Category Z"]}
+    :type :string}
+
+   {:id :label/subcategory
+    :meta {:description "Subcategory string label"
+           :sensible-values ["Subcategory #1" "Subcategory A" "Subcategory Z"]}
+    :type :string}
+
+   {:id :item/additional_charge
     :meta {:description "Additional charge"}
     :type :document
     :required-un [:label :amount :charge_type :charge_unit :charge_id]}
 
-   {:id :area
+   {:id :region/area
     :meta {:description "Geo JSON area"}
     :type :document
     :required-un [:geo/type :geo/coordinates]}
 
+   ;{:id :category_subcategory
+   ; :type :document
+   ; :required-un [:name :category :subcategory]}
+   ;
+   ;{:id :category_subcategories
+   ; :meta {:description "Catego"}
+   ; :type :vector
+   ; :vector :category_subcategory}
+
    {:id :item
     :meta {:description "Inventory item"}
     :type :document
-    :required-un [:_id :label :category :subcategory :active :visible_on_listing :unit_cost :unit_cost_basis]
-    :optional-un [:categories :image_ids :additional_charges :metro :use_type :tags :ref/regions :item/vendors]}
+    :required-un [:_id :active :name/category :name :subcategory :unit_cost
+                  :unit_cost_basis :visible_on_listing]
+    :optional-un [:additional_charges :category_ids
+                  :description :image_ids :item/region_vendors :metro :notes :region_ids :tags :use_types]}
 
    {:id :region
     :meta {:description "Region with geo JSON polygon"}
     :type :document
-    :required-un [:_id :label :active :area :metro :description]
+    :required-un [:_id :active :region/area :description :metro :name]
     :optional-un [:tags]}
 
-   {:id :service_area
-    :meta {:description "Service area as geo JSON polygon"}
-    :type :document
-    :required-un [:geo/type :geo/coordinates]}
+   ;{:id :service_area
+   ; :meta {:description "Service area as geo JSON polygon"}
+   ; :type :document
+   ; :required-un [:geo/type :geo/coordinates]}
 
    {:id :vendor
     :meta {:description "Vendors information"}
     :type :document
     :required-un [:_id :vendor/name :active :description :contact :address :city
-                  :state :zip :email :phone]
-    :optional-un [:address2 :service_area :country :metros :tax_id]}
+                  :state :zip :contact_email :phone]
+    :optional-un [:address2 :country :metros :payment_id
+                  :notification_email :tags :notes :image_ids]}
 
-   {:id :item/vendor
-    :meta {:label "Vendor (internal to Item)"
-           :description "Vendor ID"}
+   {:id :item/region_vendor
+    :meta {:description "Item region vendor association internal nested in item"}
     :type :document
-    :required-un [:ref/vendor :ref/region]
-    :optional-un [:unit_cost :unit_cost_basis :additional_charges]}
+    :required-un [:active :region_id :vendor_ids]
+    :optional-un [:additional_charges :unit_cost :unit_cost_basis]}
 
+   {:id :item/region_vendors
+    :meta {:description "Region vendors internal to Item."
+           :sensible-min 1
+           :sensible-max 3}
+    :type :vector
+    :vector-of :item/region_vendor}
+
+   {:id :category
+    :type :document
+    :required-un [:_id :active :label/category :name :label/subcategory]
+    :optional-un [:notes :rank :tags]}
    ;{:id :x
    ; :meta {:label ""
    ;        :description ""
