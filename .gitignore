@@ -12,3 +12,4 @@ pom.xml.asc
 dev.clj
 /.cpcache
 data-dictionary*.md
+dict*.html

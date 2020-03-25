@@ -696,6 +696,8 @@ of the wrapped function call).
 
 ## Documentation
 
+### Markdown
+
 Diction provides a `diction.documentation` namespace that can convert the current
 Diction data dictionary into markdown.
 
@@ -715,9 +717,57 @@ to view the information for those related data elements (such as a data
 element referenced by a `document` will have a link to the referencing
 `document` data element).
 
+### HTML
+
+Diction provides a `diction.documentation` namespace that can convert the current
+Diction data dictionary into a navigatable HTML page.
+
+```clojure
+(diction.documentation/->html)
+(diction.documentation/->html {:title "Acme Documentation"})
+```
+
+The HTML may be `spit` into a text file:
+
+```clojure
+(spit "data-dictionary.html" (diction.documentation/->html {:title "Acme Documentation"))
+```
+
+The `(diction.documentation/->html ctx)` function call allows for some optional settings.
+
+`ctx` map keys:
+- `header` : HTML string with header tags; freeform HTML
+- `title` : Title string of the generated HTML page HEAD and top header of HTML
+- `stylesheet` : CSS link
+- `style` : raw CSS text
+- `suppress-style` : if `true`, will suppress default CSS
+- `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
+- `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML
+
+### Hiccup
+
+Diction provides a `diction.documentation` namespace that can convert the current
+Diction data dictionary into an HTML hiccup vector.
+
+```clojure
+(diction.documentation/->hiccup)
+(diction.documentation/->hiccup {:title "Acme Documentation"})
+```
+
+The `(diction.documentation/->hiccup ctx)` function call allows for some optional settings.
+
+`ctx` map keys:
+- `header` : HTML string with header tags; freeform HTML
+- `title` : Title string of the generated HTML page HEAD and top header of HTML
+- `stylesheet` : CSS link
+- `style` : raw CSS text
+- `suppress-style` : if `true`, will suppress default CSS
+- `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
+- `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML
+  
 ## License
 
-Copyright © 2019 SierraLogic LLC
+Copyright © 2020 SierraLogic LLC
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.

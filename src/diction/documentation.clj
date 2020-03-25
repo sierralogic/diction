@@ -1,7 +1,10 @@
 (ns diction.documentation
   (:require [clojure.string :as str]
             [diction.core :as diction]
-            [diction.util :refer [labelize ->json] :as util])
+            [diction.parser :as parser]
+            [diction.util :refer [labelize ->json] :as util]
+            [hiccup-bridge.core :as hicb]
+            [markdown.core :as md])
   (:import (java.util Date)))
 
 (def kv-sep ": ")
@@ -10,6 +13,11 @@
 (def spacing 2)
 
 (def spaces (str/join (repeat 500 " ")))
+
+(def default-css
+  (str "\nbody {\n    font-family: sans-serif, Arial, monospace, serif;\n    alignment: center;\n}\n"
+       "ul {\n    list-style-type: square;\n}\n"
+       "#wrapper {\n    width: 980px;\n    margin: 0 auto;\n    padding-top: 5px;\n    text-align: left;\n}\n"))
 
 (defn ->str
   "Converts `x` to string."
@@ -203,7 +211,6 @@
          header (str headerx document-index field-index "\n")
          md (reduce #(let [eid (:id %2 "unk")
                            lbl (labelize (:label %2 eid))
-                           ; hdrx (str % "<a href=\"#" (->anchor eid) "\">\n\n### " lbl "\n</a>\n\n")
                            hdr (str % "\n### " lbl "\n\n")
                            kys (sort (keys %2))
                            sflds (reduce (fn [a k]
@@ -216,3 +223,50 @@
          dmds (->markdown-elements documents header "Documents")
          fmds (->markdown-elements fields dmds "Fields")]
      fmds)))
+
+(defn ->html
+  "Generate existing data dictionary into HTML string with optional context `ctx`.
+  Context `ctx` keys:
+  - `header` : HTML string with header tags; freeform HTML
+  - `title` : Title string of the generated HTML page HEAD and top header of HTML
+  - `stylesheet` : CSS link
+  - `style` : raw CSS text
+  - `suppress-style` : if `true`, will suppress default CSS
+  - `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
+  - `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML"
+  ([] (->html nil))
+  ([ctx]
+   (let [no-style? (and (not (:style ctx))
+                        (not (:stylesheet ctx))
+                        (not (:suppress-style ctx)))
+         htm (-> (->markdown (:title ctx))
+                 (md/md-to-html-string :replacement-transformers parser/transformer-vector-suppress-italics))
+         html (str "<html>\n<head>"
+                   (:header ctx)
+                   (when-let [style (:style ctx)]
+                     (str "\n<style>" style "</style>\n"))
+                   (when-let [stylesheet (:stylesheet ctx)]
+                     (str "\n<link rel=\"stylesheet\" href=\"" stylesheet "\"/>\n"))
+                   (when no-style?
+                     (str "\n<style>" default-css "</style>\n"))
+                   (when-let [title (:title ctx)] (str "\n  <title>" title "</title>\n"))
+                   "</head>\n"
+                   "<body"
+                   (when-let [on-load (:on-load ctx)] (str " onLoad=\"" on-load "\""))
+                   ">\n<div id=\"wrapper\">\n"
+                   (when-let [start-body (:start-body ctx)]
+                     (str start-body "\n"))
+                   htm
+                   "\n"
+                   (when-let [end-body (:end-body ctx)]
+                     (str end-body "\n"))
+                   "</div></body>\n</html>\n")]
+     html)))
+
+(defn ->hiccup
+  "Generate existing data dictionary into hiccup vectors with optional context `ctx`."
+  ([] (->hiccup nil))
+  ([ctx]
+   (let [html (->html ctx)
+         hic (hicb/html->hiccup html)]
+     (first hic))))
