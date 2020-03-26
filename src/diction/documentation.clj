@@ -264,7 +264,15 @@
      html)))
 
 (defn ->hiccup
-  "Generate existing data dictionary into hiccup vectors with optional context `ctx`."
+  "Generate existing data dictionary into hiccup vectors with optional context `ctx`.
+  Context `ctx` keys:
+  - `header` : HTML string with header tags; freeform HTML
+  - `title` : Title string of the generated HTML page HEAD and top header of HTML
+  - `stylesheet` : CSS link
+  - `style` : raw CSS text
+  - `suppress-style` : if `true`, will suppress default CSS
+  - `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
+  - `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML"
   ([] (->hiccup nil))
   ([ctx]
    (let [html (->html ctx)

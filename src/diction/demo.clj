@@ -273,4 +273,5 @@
    ])
 
 ;; (imports! dictionary) ;; imports the dictionary elements
+;; (spit "dictionary.html" (doc/->html))  ;; writes out the data dictional nav HTML page
 
