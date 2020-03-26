@@ -75,12 +75,36 @@
     :type :string
     :regex-pattern ".+@.+..{2,20}"}
 
+   {:id :phone
+    :meta {:description "Phone number"
+           :sensible-values ["+1 (415) 622-1233" "+42 34 2344 234"]}
+    :type :string
+    :min 1
+    :max 30}
+
+   {:id :cell_phone
+    :clone :phone
+    :meta {:description "Cell phone"}}
+
+   {:id :home_phone
+    :clone :phone
+    :meta {:description "Home phone"}}
+
+   {:id :work_phone
+    :clone :phone
+    :meta {:description "Work phone"}}
+
    {:id :label
-    :meta {:description "Name or label"
-           :sensible-values ["Name #1" "Name A" "Name as such"]}
+    :meta {:description "Label"
+           :sensible-values ["Label #1" "Label A" "Label Z"]}
     :type :string
     :min 1
     :max 100}
+
+   {:id :name
+    :clone :label
+    :meta {:description "Name"
+           :sensible-values ["Name #1" "Name A" "Name as such"]}}
 
    {:id :contact_email
     :clone :email
@@ -224,7 +248,8 @@
 
    {:id :manufacturer
     :type :document
-    :required-un [:id]}
+    :required-un [:id :name :address :city :province :postal_code :country]
+    :optional-un [:address2 :contact_email :phone]}
 
    {:id :sku
     :type :string
@@ -265,13 +290,26 @@
            :sensible-min 1
            :sensible-max 3}}
 
+   {:id :customer
+    :type :document
+    :meta {:description "Customer"
+           :label "Customer"}
+    :required-un [:id :label :first_name :last_name :address :province :city :country :province]
+    :optional-un [:active :address2 :email :cell_phone :work_phone :home_phone]}
+
+   {:id :customer_id
+    :clone :id
+    :meta {:description "Customer ID"
+           :label "Customer ID"}}
+
    {:id :order
     :type :document
-    :required-un [:id :line_items :total :subtotal :amount]
+    :required-un [:id :line_items :customer_id :total :subtotal :amount]
     :optional-un [:total :subtotal :taxes :fees :charges]}
 
    ])
 
-;; (imports! dictionary) ;; imports the dictionary elements
-;; (spit "dictionary.html" (doc/->html))  ;; writes out the data dictional nav HTML page
-
+(defn demo
+  []
+  (diction/imports! dictionary)
+  (spit "demo-data-dictionary.html" (doc/->html {:title "Demo Data Dictionary"})))
