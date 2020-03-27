@@ -1,9 +1,21 @@
 (ns diction.util
   (:require [cheshire.core :as cheshire]
+            [cheshire.generate :refer [add-encoder encode-str remove-encoder]]
             [clj-time.core :as t]
             [clojure.string :as str]
             [clojure.walk :as walk])
   (:import (java.util Random UUID)))
+
+(def json-encode-to-string-classes
+  [java.util.regex.Pattern
+   org.joda.time.DateTime])
+
+(def add-encoders-result (reduce #(conj %
+                                        (add-encoder %2
+                                                     (fn [c jsonGenerator]
+                                                       (.writeString jsonGenerator (str c)))))
+                                 nil
+                                 json-encode-to-string-classes))
 
 (def joda-class (class (t/now)))
 
@@ -211,6 +223,19 @@
       (str/replace "_" " ")
       normalize-words
       str/trim))
+
+(defn labelize-element
+  "Converts element name `x` to a label."
+  [x]
+  (let [sx (->str x)
+        splt (str/split sx #"\/")
+        lbls (map #(-> %
+                       (str/replace "-" " ")
+                       (str/replace "_" " ")
+                       normalize-words
+                       str/trim)
+                  splt)]
+    (str/join " / " lbls)))
 
 (defn safe-nth
   "Safe nth against collection `c` and index `ndx`.  Returns `nil` if exception."

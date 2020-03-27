@@ -137,17 +137,17 @@
     :min -180.0
     :max 180.0}
 
-   {:id :long-lat
+   {:id :long_lat
     :meta {:description "Longitude and latitude pair"}
     :type :tuple
     :tuple [:longitude :latitude]}
 
-   {:id :long-lats
+   {:id :long_lats
     :meta {:description "List of longitude/latitude pairs."
            :sensible-min 1
            :sensible-max 1}
     :type :vector
-    :vector-of :long-lat
+    :vector-of :long_lat
     :min 1
     :max 10}
 
@@ -306,6 +306,12 @@
     :type :document
     :required-un [:id :line_items :customer_id :total :subtotal :amount]
     :optional-un [:total :subtotal :taxes :fees :charges]}
+
+   {:id :person
+    :type :document
+    :meta {:description "Person"}
+    :required-un [:id :first_name :last_name :address :province :city :country :province]
+    :optional-un [:active :address2 :email :cell_phone :work_phone :home_phone :long_lat :tags]}
 
    ])
 

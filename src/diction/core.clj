@@ -846,19 +846,17 @@
              :valid-f (partial validate-double (:min m) (:max m)))
     m))
 
-(defn normalize-string
-  "Normalizes the string entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
+(defn normalize-any
+  "Normalizes the any entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
   the element map `m`."
   [m]
-  (if (= :string (:type m))
+  (if (= :any (:type m))
     (let [rgx-ptn (:regex-pattern m)
           rgx (if rgx-ptn (re-pattern rgx-ptn) (:regex m))]
-      (merge (assoc m :gen-f (or                            ;(:gen-f m)
-                               (if rgx
+      (merge (assoc m :gen-f (if rgx
                                  (wrap-gen-f (partial generate-regex-string rgx))
-                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m) (:chars m)))))
-                      :valid-f (or                          ; (:valid-f m)
-                                 (partial validate-string (:min m) (:max m) rgx)))
+                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m) (:chars m))))
+                      :valid-f (constantly nil))
              (when rgx {:regex rgx})))
     m))
 
@@ -877,6 +875,23 @@
                                  (partial validate-keyword (:min m) (:max m) rgx)))
              (when rgx {:regex rgx})))
     m))
+
+(defn normalize-string
+  "Normalizes the string entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
+  the element map `m`."
+  [m]
+  (if (= :string (:type m))
+    (let [rgx-ptn (:regex-pattern m)
+          rgx (if rgx-ptn (re-pattern rgx-ptn) (:regex m))]
+      (merge (assoc m :gen-f (or                            ;(:gen-f m)
+                               (if rgx
+                                 (wrap-gen-f (partial generate-regex-string rgx))
+                                 (wrap-gen-f (partial generate-random-string (:min m) (:max m) (:chars m)))))
+                      :valid-f (or                          ; (:valid-f m)
+                                 (partial validate-string (:min m) (:max m) rgx)))
+             (when rgx {:regex rgx})))
+    m))
+
 
 (defn normalize-joda
   "Normalizes the joda entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
@@ -1540,17 +1555,18 @@
 
 (defn data-dictionary
   "Generates a data dictionary given current element definitions."
-  []
-  (let [sorted-elements (->> @dictionary
-                             vals
-                             (filter filter-out-diction-elements)
-                             (sort-by :id))
-        nelems (mapv annotate-summary sorted-elements)
-        fds (group-by document-or-field nelems)
-        summary (mapv summary-entry sorted-elements)]
-    (merge {:summary summary}
-           fds
-           {:elements nelems})))
+  ([] (data-dictionary nil))
+  ([filter-f]
+   (let [sorted-elements (->> @dictionary
+                              vals
+                              (filter (or filter-f filter-out-diction-elements))
+                              (sort-by :id))
+         nelems (mapv annotate-summary sorted-elements)
+         fds (group-by document-or-field nelems)
+         summary (mapv summary-entry sorted-elements)]
+     (merge {:summary summary}
+            fds
+            {:elements nelems}))))
 
 ;;; Import / Export ========================================================
 
@@ -1784,6 +1800,7 @@
 (def import-tuple! (partial import-ofs! tuple! :tuple))
 
 (def import-string! (partial import-element! string!))
+(def import-keyword! (partial import-element! keyword!))
 (def import-double! (partial import-element! double!))
 (def import-pos-double! (partial import-element! pos-double!))
 (def import-neg-double! (partial import-element! neg-double!))
@@ -1795,6 +1812,7 @@
 
 (def types->functions
   {:string import-string!
+   :keyword import-keyword!
    :document import-document!
    :double import-double!
    :pos-double import-pos-double!

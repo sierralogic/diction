@@ -63,7 +63,199 @@ management.
 - predicate logic in declarative diction element definitions (simliar to `spec`)
 - rich meta data handling for compliance and data element awareness
 
-## Quick Start Example Code
+## Quick Start
+
+Data elements may be defined/registered declaratively (data) or programmatically (code).
+
+### Declarative Element Registration
+
+The `diction` library allows for the registration of data elements via data
+for data elements that use the built-in data `diction` types.
+
+```clojure
+(def dictionary
+  [
+
+   {:id :first_name
+    :type :string
+    :min 1
+    :max 50
+    :meta {:description "First or given name."
+           :sensible-values ["John" "Jane" "Juan" "Maria" "Abhul"]}}
+
+   {:id :last_name
+    :type :string
+    :min 1
+    :max 50
+    :meta {:description "Last name or surname."
+           :sensible-values ["Smith" "Lopez" "Nguyen" "Chang"]}}
+
+   {:id :address
+    :type :string
+    :min 1
+    :max 100
+    :meta {:description "Address line."
+           :sensible-values ["123 Main St." "34 Rue De Fleurs"]}}
+
+   {:id :address2
+    :type :string
+    :min 0
+    :max 100
+    :meta {:description "Address line #2 for units, suites, etc."
+           :sensible-values ["Unit 42" "#10" "Apt. D" "Suite 4100"]}}
+
+   {:id :city
+    :type :string
+    :min 1
+    :max 50
+    :meta {:description "City or town."
+           :sensible-values ["Las Vegas" "Paris" "London" "Beijing" "Tokyo"]}}
+
+   {:id :province
+    :type :string
+    :min 1
+    :max 50
+    :meta {:description "Province or state."
+           :sensible-values ["NV" "ID" "WY"]}}
+
+   {:id :postal_code
+    :type :string
+    :meta {:description "Postal or zip code."
+           :sensible-values ["89521" "NR14 7PZ"]}}
+
+   {:id :country
+    :type :string
+    :meta {:description "Country code."
+           :sensible-values ["US" "CH" "FR"]}}
+
+   {:id :phone
+    :meta {:description "Phone number"
+           :sensible-values ["+1 (415) 622-1233" "+42 34 2344 234"]}
+    :type :string
+    :min 1
+    :max 30}
+
+   {:id :cell_phone
+    :clone :phone
+    :meta {:description "Cell phone"}}
+
+   {:id :home_phone
+    :clone :phone
+    :meta {:description "Home phone"}}
+
+   {:id :work_phone
+    :clone :phone
+    :meta {:description "Work phone"}}
+
+   {:id :email
+    :meta {:description "Email address"
+           :sensible-values ["jane@acme.org" "mulan@cater.io"]}
+    :type :string
+    :regex-pattern ".+@.+..{2,20}"}
+
+   {:id :contact_email
+    :clone :email
+    :meta {:description "Contact email address"
+           :sensible-values ["jane@acme.org" "mulan@kemper.io"]}}
+
+   {:id :notification_email
+    :clone :email
+    :meta {:description "Automated notification address"
+           :sensible-values ["orders@acme.org" "fulfilment@sunshine.io"]}}
+
+   {:id :notes
+    :type :string
+    :meta {:description "Notes"
+           :sensible-values ["Some notes" "Notes are here" "And more notes"]}}
+
+   {:id :active
+    :meta {:description "Active flag (true/false)"}
+    :type :boolean}
+
+   {:id :latitude
+    :meta {:description "Latitude geo"}
+    :type :double
+    :min -90.0
+    :max 90.0}
+
+   {:id :longitude
+    :meta {:description "Longitude geo (-180 - 180)"}
+    :type :double
+    :min -180.0
+    :max 180.0}
+
+   {:id :long_lat
+    :meta {:description "Longitude and latitude pair"}
+    :type :tuple
+    :tuple [:longitude :latitude]}
+
+   {:id :long_lats
+    :meta {:description "List of longitude/latitude pairs."
+           :sensible-min 1
+           :sensible-max 1}
+    :type :vector
+    :vector-of :long-lat
+    :min 1
+    :max 10}
+
+   {:id :tag
+    :meta {:description "Smart tag"
+           :sensible-values ["tag1" "tag2" "tag3"
+                             "tag4" "tag5" "tag6"
+                             "tag99"]}
+    :type :string
+    :min 2
+    :max 32}
+
+   {:id :tags
+    :meta {:description "Smart tags"
+           :sensible-min 1
+           :sensible-max 4}
+    :type :set
+    :set-of :tag
+    :min 1
+    :max 12}
+
+   {:id :id
+    :type :string
+    :meta {:description "Unique identifier."
+           :sensible-values ["id1" "id2" "abcdef.id"]}}
+
+   {:id :person
+    :type :document
+    :meta {:description "Person"}
+    :required-un [:id :first_name :last_name :address :province :city :country :province]
+    :optional-un [:active :address2 :email :cell_phone :work_phone :home_phone :long_lat :tags]}
+
+])
+```
+
+And then register with `diction` via `diction.core/import!` for a single data element
+map:
+
+```clojure
+(diction/import! {:id :label :type :string :min 1 :max 50})
+```
+
+Or `diction.core/imports!` for a vector of data element maps.
+
+```clojure
+(diction/imports! dictionary)
+```
+
+```clojure
+(diction/generate :person)
+;=>
+{:address "123 Main St.",
+ :city "London",
+ :country "CH",
+ :first_name "Juan",
+ :id "id2",
+ :last_name "Nguyen",
+ :province "WY"}
+```
+
+### Programmatic Element Registration
 
 ```clojure
 ;; defines label as a string with a minimum length of 0 and max length of 8
@@ -141,27 +333,15 @@ management.
 ### Generation
 
 ```clojure
-(generate ::item)
+(diction/generate :person)
 ;=>
-{:id "da97d0b6-9c1d-495b-5367-c23da019dc01",
- :label "EXJIJS",
- :unit-count 444,
- :unit-cost 75.0581280630676,
- :badge :VHObB,
- :tags ["8zO" "y6n" "q4oH" "+ bb" "ny7LZO6" "ru" "F4vi8nNSo5o"],
- :description "19Ti7Ekh6wassjon3RJ=jmBhsX-bLygGAy6pcGl3F6KM3",
- :additional-charges {:fees [{:label "Ut",
-                              :fee-upcharge 193.5841860568779,
-                              :cost-basis :flat,
-                              :description "HwGpoD7o96pGsM7N2mqq7To2fHfq7=ekjHxO+"}
-                             {:label "fD7AXP",
-                              :fee-upcharge 350.57367256651224,
-                              :cost-basis :per-unit,
-                              :description "PswklPNDFbJS0l9QrBCnpT6I=PEM41Hq5B9lua"}
-                             {:label "", 
-                              :fee-upcharge 286.83015039087127, 
-                              :cost-basis :flat}]}}
-
+{:address "123 Main St.",
+ :city "London",
+ :country "CH",
+ :first_name "Juan",
+ :id "id2",
+ :last_name "Nguyen",
+ :province "WY"}
 ```
 
 ### Validation / Explanation
@@ -434,6 +614,7 @@ If the groom returns a non-nil value, that is the groomed value for that element
                                  {:percent-upcharge 0.0734059122348183, :cost-basis :per-unit, :label "+7+t"}]}}
 
 ```
+
 ### Decoration Rules
 
 Decoration rules may be defined and leveraged to centralize decoration/normalization of

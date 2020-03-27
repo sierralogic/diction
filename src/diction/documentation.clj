@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]
             [diction.core :as diction]
             [diction.parser :as parser]
-            [diction.util :refer [labelize ->json] :as util]
+            [diction.util :refer [labelize labelize-element ->json vls?] :as util]
             [hiccup-bridge.core :as hicb]
             [markdown.core :as md])
   (:import (java.util Date)))
@@ -79,7 +79,9 @@
   [x]
   (if (string? x)
     (str "\"" x "\"")
-    (->str x)))
+    (if (keyword? x)
+      x
+      (->str x))))
 
 (defn decorate-value
   "Decorate value `v`.  Currently passes through maps, but comma-delimits collections."
@@ -168,7 +170,7 @@
   (reduce #(let [eid (:id %2 "unk")
                  elem (:element %2)
                  nelem (apply dissoc (cons elem exclude-element-fields))
-                 lbl (labelize (:label %2 eid))
+                 lbl (labelize-element (:label %2 eid))
                  sks (sort (keys nelem))
                  meta (:meta elem)
                  metas (when meta
@@ -186,7 +188,11 @@
                            (diction/generate eid))
                  example (if document? (into (sorted-map) examplex)
                                        examplex)
-                 normalized-example (->json example)
+                 normalized-example (if (or (keyword? example)
+                                            (when (vls? example)
+                                              (not (not-any? keyword? example))))
+                                      example
+                                      (->json example))
                  dmdx (str dmd
                            "- **Example**:" doc-note "\n"
                            "```json\n"
@@ -198,10 +204,11 @@
 
 (defn ->markdown
   "Convert existing data dictionary into markdown with optional `title`."
-  ([] (->markdown nil))
-  ([title]
+  ([] (->markdown nil nil))
+  ([title] (->markdown nil title))
+  ([filter-f title]
    (let [dd (binding [diction/*force-sensible* true]
-              (diction/data-dictionary))
+              (diction/data-dictionary filter-f))
          ntitle (or title "Data Dictionary")
          generated (Date.)
          headerx (str "# " ntitle "\n*generated: " generated "*\n\n")
@@ -234,12 +241,13 @@
   - `suppress-style` : if `true`, will suppress default CSS
   - `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
   - `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML"
-  ([] (->html nil))
-  ([ctx]
+  ([] (->html nil nil))
+  ([ctx] (->html nil nil))
+  ([filter-f ctx]
    (let [no-style? (and (not (:style ctx))
                         (not (:stylesheet ctx))
                         (not (:suppress-style ctx)))
-         htm (-> (->markdown (:title ctx))
+         htm (-> (->markdown filter-f (:title ctx))
                  (md/md-to-html-string :replacement-transformers parser/transformer-vector-suppress-italics))
          html (str "<html>\n<head>"
                    (:header ctx)
@@ -274,7 +282,8 @@
   - `start-body` : HTML string with tags at the top of the BODY tag; freeform HTML
   - `end-body` : HTML string with tags at the bottom of the BODY tag; freeform HTML"
   ([] (->hiccup nil))
-  ([ctx]
-   (let [html (->html ctx)
+  ([ctx] (->hiccup nil ctx))
+  ([filter-f ctx]
+   (let [html (->html filter-f ctx)
          hic (hicb/html->hiccup html)]
      (first hic))))
