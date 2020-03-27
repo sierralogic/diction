@@ -188,15 +188,15 @@
                            (diction/generate eid))
                  example (if document? (into (sorted-map) examplex)
                                        examplex)
-                 normalized-example (if (or (keyword? example)
-                                            (when (vls? example)
-                                              (not (not-any? keyword? example))))
-                                      example
-                                      (->json example))
+                 normalized-example (->json example)
                  dmdx (str dmd
-                           "- **Example**:" doc-note "\n"
+                           "- **JSON Example**:" doc-note "\n\n"
                            "```json\n"
                            normalized-example
+                           "\n```\n"
+                           "- **EDN Example**:" doc-note "\n\n"
+                           "```clojure\n"
+                           (with-out-str (clojure.pprint/pprint example))
                            "\n```\n")]
              (str hdr metas dmdx "\n"))
           (str body "## " title "\n\n")

@@ -1,6 +1,6 @@
 (ns diction.demo
   (:require [diction.core :refer [clone!
-                                  generate info data-dictionary explain
+                                  info data-dictionary explain
                                   long!
                                   pos-double! neg-double! double!
                                   pos-float! neg-float! float!
@@ -213,13 +213,11 @@
 
    {:id :sales_tax
     :clone :tax
-    :meta {:description "Sales Tax"
-           :label "Sales Tax"}}
+    :meta {:description "Sales Tax"}}
 
    {:id :taxes
     :clone :tax
-    :meta {:description "Taxes"
-           :label "Taxes"}}
+    :meta {:description "Taxes"}}
 
    {:id :fee
     :type :double
@@ -228,23 +226,19 @@
 
    {:id :delivery_fee
     :clone :fee
-    :meta {:description "Delivery fee"
-           :label "Delivery Fee"}}
+    :meta {:description "Delivery fee"}}
 
    {:id :fees
     :clone :fee
-    :meta {:description "Fees"
-           :label "Fees"}}
+    :meta {:description "Fees"}}
 
    {:id :charge
     :clone :fee
-    :meta {:description "Charge"
-           :label "Charge"}}
+    :meta {:description "Charge"}}
 
    {:id :charges
     :clone :fee
-    :meta {:description "Charges"
-           :label "Charges"}}
+    :meta {:description "Charges"}}
 
    {:id :manufacturer
     :type :document
@@ -256,7 +250,6 @@
     :min 1
     :max 50
     :meta {:description "SKU"
-           :label "SKU"
            :sensible-values ["sku1" "sku2" "sku99"]}}
 
    {:id :manufacturer_id
@@ -292,15 +285,13 @@
 
    {:id :customer
     :type :document
-    :meta {:description "Customer"
-           :label "Customer"}
-    :required-un [:id :label :first_name :last_name :address :province :city :country :province]
+    :meta {:description "Customer"}
+    :required-un [:id :first_name :last_name :address :province :city :country :province]
     :optional-un [:active :address2 :email :cell_phone :work_phone :home_phone]}
 
    {:id :customer_id
     :clone :id
-    :meta {:description "Customer ID"
-           :label "Customer ID"}}
+    :meta {:description "Customer ID"}}
 
    {:id :order
     :type :document
@@ -315,7 +306,8 @@
 
    ])
 
-(defn demo
+(defn generate
   []
   (diction/imports! dictionary)
-  (spit "demo-data-dictionary.html" (doc/->html {:title "Demo Data Dictionary"})))
+  (spit "demo.html" (doc/->html {:title "Demo Data Dictionary"}))
+  (spit "demo.md" (doc/->markdown "Demo Data Dictionary")))

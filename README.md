@@ -72,6 +72,10 @@ Data elements may be defined/registered declaratively (data) or programmatically
 The `diction` library allows for the registration of data elements via data
 for data elements that use the built-in data `diction` types.
 
+Please refer to the `diction` data elements generated documentation in the
+`diction` [wiki](https://github.com/sierralogic/diction/wiki/Diction-Data-Elements).
+
+
 ```clojure
 (def dictionary
   [

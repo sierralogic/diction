@@ -1,0 +1,366 @@
+<html>
+<head>
+<style>
+body {
+    font-family: sans-serif, Arial, monospace, serif;
+    alignment: center;
+}
+ul {
+    list-style-type: square;
+}
+#wrapper {
+    width: 980px;
+    margin: 0 auto;
+    padding-top: 5px;
+    text-align: left;
+}
+</style>
+</head>
+<body>
+<div id="wrapper">
+<h1>Data Dictionary</h1><p><em>generated: Fri Mar 27 10:06:43 PDT 2020</em></p><h2>Document Index</h2><ul><li><a href="#additional_charge">additional_charge</a></li><li><a href="#customer">customer</a></li><li><a href="#line_item">line_item</a></li><li><a href="#manufacturer">manufacturer</a></li><li><a href="#order">order</a></li><li><a href="#person">person</a></li><li><a href="#product">product</a></li></ul><h2>Field Index</h2><ul><li><a href="#active">active</a></li><li><a href="#address">address</a></li><li><a href="#address2">address2</a></li><li><a href="#amount">amount</a></li><li><a href="#cell_phone">cell_phone</a></li><li><a href="#charge">charge</a></li><li><a href="#charges">charges</a></li><li><a href="#city">city</a></li><li><a href="#contact_email">contact_email</a></li><li><a href="#count">count</a></li><li><a href="#country">country</a></li><li><a href="#customer_id">customer_id</a></li><li><a href="#delivery_fee">delivery_fee</a></li><li><a href="#email">email</a></li><li><a href="#fee">fee</a></li><li><a href="#fees">fees</a></li><li><a href="#first_name">first_name</a></li><li><a href="#home_phone">home_phone</a></li><li><a href="#id">id</a></li><li><a href="#ids">ids</a></li><li><a href="#label">label</a></li><li><a href="#last_name">last_name</a></li><li><a href="#latitude">latitude</a></li><li><a href="#line_items">line_items</a></li><li><a href="#long_lat">long_lat</a></li><li><a href="#long_lats">long_lats</a></li><li><a href="#longitude">longitude</a></li><li><a href="#manufacturer_id">manufacturer_id</a></li><li><a href="#name">name</a></li><li><a href="#notes">notes</a></li><li><a href="#notification_email">notification_email</a></li><li><a href="#phone">phone</a></li><li><a href="#postal_code">postal_code</a></li><li><a href="#product_id">product_id</a></li><li><a href="#province">province</a></li><li><a href="#sales_tax">sales_tax</a></li><li><a href="#sku">sku</a></li><li><a href="#subtotal">subtotal</a></li><li><a href="#tag">tag</a></li><li><a href="#tags">tags</a></li><li><a href="#tax">tax</a></li><li><a href="#taxes">taxes</a></li><li><a href="#total">total</a></li><li><a href="#unit_cost">unit_cost</a></li><li><a href="#work_phone">work_phone</a></li></ul><h2>Documents</h2><p><a name="additional_charge"></a></p><h3>Additional Charge</h3><ul><li><strong>ID</strong>: <a href="#additional_charge">additional_charge</a></li><li><strong>Optional (Unqualified)</strong>: [ ]</li><li><strong>Required (Unqualified)</strong>: [ ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{ }
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{}
+
+</code></pre></li></ul><p><a name="customer"></a></p><h3>Customer</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Customer"</li></ul></li><li><strong>ID</strong>: <a href="#customer">customer</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#active">active</a>, <a href="#address2">address2</a>, <a href="#email">email</a>, <a href="#cell_phone">cell_phone</a>, <a href="#work_phone">work_phone</a>, <a href="#home_phone">home_phone</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#id">id</a>, <a href="#first_name">first_name</a>, <a href="#last_name">last_name</a>, <a href="#address">address</a>, <a href="#province">province</a>, <a href="#city">city</a>, <a href="#country">country</a>, <a href="#province">province</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;active&quot; : false,
+  &quot;address&quot; : &quot;34 Rue De Fleurs&quot;,
+  &quot;address2&quot; : &quot;Apt. D&quot;,
+  &quot;cell&#95;phone&quot; : &quot;+42 34 2344 234&quot;,
+  &quot;city&quot; : &quot;Paris&quot;,
+  &quot;country&quot; : &quot;FR&quot;,
+  &quot;email&quot; : &quot;jane@acme.org&quot;,
+  &quot;first&#95;name&quot; : &quot;Maria&quot;,
+  &quot;home&#95;phone&quot; : &quot;+42 34 2344 234&quot;,
+  &quot;id&quot; : &quot;abcdef.id&quot;,
+  &quot;last&#95;name&quot; : &quot;Smith&quot;,
+  &quot;province&quot; : &quot;ID&quot;,
+  &quot;work&#95;phone&quot; : &quot;+42 34 2344 234&quot;
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:active false,
+ :address &quot;34 Rue De Fleurs&quot;,
+ :address2 &quot;Apt. D&quot;,
+ :cell&#95;phone &quot;+42 34 2344 234&quot;,
+ :city &quot;Paris&quot;,
+ :country &quot;FR&quot;,
+ :email &quot;jane@acme.org&quot;,
+ :first&#95;name &quot;Maria&quot;,
+ :home&#95;phone &quot;+42 34 2344 234&quot;,
+ :id &quot;abcdef.id&quot;,
+ :last&#95;name &quot;Smith&quot;,
+ :province &quot;ID&quot;,
+ :work&#95;phone &quot;+42 34 2344 234&quot;}
+
+</code></pre></li></ul><p><a name="line_item"></a></p><h3>Line Item</h3><ul><li><strong>ID</strong>: <a href="#line_item">line_item</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#amount">amount</a>, <a href="#total">total</a>, <a href="#subtotal">subtotal</a>, <a href="#charge">charge</a>, <a href="#fee">fee</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#product_id">product_id</a>, <a href="#count">count</a>, <a href="#unit_cost">unit_cost</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;amount&quot; : 0.34,
+  &quot;charge&quot; : 3.23,
+  &quot;count&quot; : 3,
+  &quot;fee&quot; : 42.42,
+  &quot;product&#95;id&quot; : &quot;abcdef.id&quot;,
+  &quot;subtotal&quot; : 42.42,
+  &quot;total&quot; : 1.23,
+  &quot;unit&#95;cost&quot; : 1.23
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:amount 0.34,
+ :charge 3.23,
+ :count 3,
+ :fee 42.42,
+ :product&#95;id &quot;abcdef.id&quot;,
+ :subtotal 42.42,
+ :total 1.23,
+ :unit&#95;cost 1.23}
+
+</code></pre></li></ul><p><a name="manufacturer"></a></p><h3>Manufacturer</h3><ul><li><strong>ID</strong>: <a href="#manufacturer">manufacturer</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#address2">address2</a>, <a href="#contact_email">contact_email</a>, <a href="#phone">phone</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#id">id</a>, <a href="#name">name</a>, <a href="#address">address</a>, <a href="#city">city</a>, <a href="#province">province</a>, <a href="#postal_code">postal_code</a>, <a href="#country">country</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;address&quot; : &quot;34 Rue De Fleurs&quot;,
+  &quot;address2&quot; : &quot;Apt. D&quot;,
+  &quot;city&quot; : &quot;Tokyo&quot;,
+  &quot;contact&#95;email&quot; : &quot;mulan@kemper.io&quot;,
+  &quot;country&quot; : &quot;CH&quot;,
+  &quot;id&quot; : &quot;id2&quot;,
+  &quot;name&quot; : &quot;Name A&quot;,
+  &quot;phone&quot; : &quot;+42 34 2344 234&quot;,
+  &quot;postal&#95;code&quot; : &quot;NR14 7PZ&quot;,
+  &quot;province&quot; : &quot;NV&quot;
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:address &quot;34 Rue De Fleurs&quot;,
+ :address2 &quot;Apt. D&quot;,
+ :city &quot;Tokyo&quot;,
+ :contact&#95;email &quot;mulan@kemper.io&quot;,
+ :country &quot;CH&quot;,
+ :id &quot;id2&quot;,
+ :name &quot;Name A&quot;,
+ :phone &quot;+42 34 2344 234&quot;,
+ :postal&#95;code &quot;NR14 7PZ&quot;,
+ :province &quot;NV&quot;}
+
+</code></pre></li></ul><p><a name="order"></a></p><h3>Order</h3><ul><li><strong>ID</strong>: <a href="#order">order</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#total">total</a>, <a href="#subtotal">subtotal</a>, <a href="#taxes">taxes</a>, <a href="#fees">fees</a>, <a href="#charges">charges</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#id">id</a>, <a href="#line_items">line_items</a>, <a href="#customer_id">customer_id</a>, <a href="#total">total</a>, <a href="#subtotal">subtotal</a>, <a href="#amount">amount</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;amount&quot; : 3.23,
+  &quot;charges&quot; : 42.42,
+  &quot;customer&#95;id&quot; : &quot;id2&quot;,
+  &quot;fees&quot; : 1.23,
+  &quot;id&quot; : &quot;id1&quot;,
+  &quot;line&#95;items&quot; : &#91; {
+    &quot;amount&quot; : 0.34,
+    &quot;charge&quot; : 42.42,
+    &quot;count&quot; : 4242,
+    &quot;fee&quot; : 3.23,
+    &quot;product&#95;id&quot; : &quot;abcdef.id&quot;,
+    &quot;subtotal&quot; : 0.34,
+    &quot;total&quot; : 99.99,
+    &quot;unit&#95;cost&quot; : 1.23
+  } &#93;,
+  &quot;subtotal&quot; : 99.99,
+  &quot;taxes&quot; : 0.34,
+  &quot;total&quot; : 3.23
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:amount 3.23,
+ :charges 42.42,
+ :customer&#95;id &quot;id2&quot;,
+ :fees 1.23,
+ :id &quot;id1&quot;,
+ :line&#95;items
+ &#91;{:amount 0.34,
+   :charge 42.42,
+   :count 4242,
+   :fee 3.23,
+   :product&#95;id &quot;abcdef.id&quot;,
+   :subtotal 0.34,
+   :total 99.99,
+   :unit&#95;cost 1.23}&#93;,
+ :subtotal 99.99,
+ :taxes 0.34,
+ :total 3.23}
+
+</code></pre></li></ul><p><a name="person"></a></p><h3>Person</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Person"</li></ul></li><li><strong>ID</strong>: <a href="#person">person</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#active">active</a>, <a href="#address2">address2</a>, <a href="#email">email</a>, <a href="#cell_phone">cell_phone</a>, <a href="#work_phone">work_phone</a>, <a href="#home_phone">home_phone</a>, <a href="#long_lat">long_lat</a>, <a href="#tags">tags</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#id">id</a>, <a href="#first_name">first_name</a>, <a href="#last_name">last_name</a>, <a href="#address">address</a>, <a href="#province">province</a>, <a href="#city">city</a>, <a href="#country">country</a>, <a href="#province">province</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;active&quot; : true,
+  &quot;address&quot; : &quot;34 Rue De Fleurs&quot;,
+  &quot;address2&quot; : &quot;Unit 42&quot;,
+  &quot;cell&#95;phone&quot; : &quot;+1 &#40;415&#41; 622-1233&quot;,
+  &quot;city&quot; : &quot;London&quot;,
+  &quot;country&quot; : &quot;US&quot;,
+  &quot;email&quot; : &quot;mulan@cater.io&quot;,
+  &quot;first&#95;name&quot; : &quot;Maria&quot;,
+  &quot;home&#95;phone&quot; : &quot;+42 34 2344 234&quot;,
+  &quot;id&quot; : &quot;abcdef.id&quot;,
+  &quot;last&#95;name&quot; : &quot;Lopez&quot;,
+  &quot;long&#95;lat&quot; : &#91; 41.545047996762435, 73.02752813174229 &#93;,
+  &quot;province&quot; : &quot;WY&quot;,
+  &quot;tags&quot; : &#91; &quot;tag2&quot; &#93;,
+  &quot;work&#95;phone&quot; : &quot;+42 34 2344 234&quot;
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:active true,
+ :address &quot;34 Rue De Fleurs&quot;,
+ :address2 &quot;Unit 42&quot;,
+ :cell&#95;phone &quot;+1 &#40;415&#41; 622-1233&quot;,
+ :city &quot;London&quot;,
+ :country &quot;US&quot;,
+ :email &quot;mulan@cater.io&quot;,
+ :first&#95;name &quot;Maria&quot;,
+ :home&#95;phone &quot;+42 34 2344 234&quot;,
+ :id &quot;abcdef.id&quot;,
+ :last&#95;name &quot;Lopez&quot;,
+ :long&#95;lat &#91;41.545047996762435 73.02752813174229&#93;,
+ :province &quot;WY&quot;,
+ :tags #{&quot;tag2&quot;},
+ :work&#95;phone &quot;+42 34 2344 234&quot;}
+
+</code></pre></li></ul><p><a name="product"></a></p><h3>Product</h3><ul><li><strong>ID</strong>: <a href="#product">product</a></li><li><strong>Optional (Unqualified)</strong>: [ <a href="#sku">sku</a>, <a href="#count">count</a>, <a href="#manufacturer_id">manufacturer_id</a> ]</li><li><strong>Required (Unqualified)</strong>: [ <a href="#id">id</a>, <a href="#unit_cost">unit_cost</a> ]</li><li><strong>Type</strong>: :document</li><li><strong>JSON Example</strong>: (required and optional field(s))<pre><code class="json">{
+  &quot;count&quot; : 342,
+  &quot;id&quot; : &quot;id1&quot;,
+  &quot;manufacturer&#95;id&quot; : &quot;man2&quot;,
+  &quot;sku&quot; : &quot;sku99&quot;,
+  &quot;unit&#95;cost&quot; : 42.42
+}
+</code></pre></li><li><strong>EDN Example</strong>: (required and optional field(s))<pre><code class="clojure">{:count 342,
+ :id &quot;id1&quot;,
+ :manufacturer&#95;id &quot;man2&quot;,
+ :sku &quot;sku99&quot;,
+ :unit&#95;cost 42.42}
+
+</code></pre></li></ul><h2>Fields</h2><p><a name="active"></a></p><h3>Active</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Active flag (true/false)"</li></ul></li><li><strong>ID</strong>: <a href="#active">active</a></li><li><strong>Parent ID</strong>: :diction/boolean</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :boolean</li><li><strong>JSON Example</strong>:<pre><code class="json">false
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">false
+
+</code></pre></li></ul><p><a name="address"></a></p><h3>Address</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Address line."</li><li><strong>Sensible Values</strong>: [ "123 Main St.", "34 Rue De Fleurs" ]</li></ul></li><li><strong>ID</strong>: <a href="#address">address</a></li><li><strong>Max</strong>: 100</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;123 Main St.&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;123 Main St.&quot;
+
+</code></pre></li></ul><p><a name="address2"></a></p><h3>Address2</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Address line #2 for units, suites, etc."</li><li><strong>Sensible Values</strong>: [ "Unit 42", "#10", "Apt. D", "Suite 4100" ]</li></ul></li><li><strong>ID</strong>: <a href="#address2">address2</a></li><li><strong>Max</strong>: 100</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Unit 42&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Unit 42&quot;
+
+</code></pre></li></ul><p><a name="amount"></a></p><h3>Amount</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Unit cost."</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#amount">amount</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a>, <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">42.42
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">42.42
+
+</code></pre></li></ul><p><a name="cell_phone"></a></p><h3>Cell Phone</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Cell phone"</li><li><strong>Sensible Values</strong>: [ "+1 (415) 622-1233", "+42 34 2344 234" ]</li></ul></li><li><strong>ID</strong>: <a href="#cell_phone">cell_phone</a></li><li><strong>Max</strong>: 30</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;+1 &#40;415&#41; 622-1233&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;+1 &#40;415&#41; 622-1233&quot;
+
+</code></pre></li></ul><p><a name="charge"></a></p><h3>Charge</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Charge"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#charge">charge</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">42.42
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">42.42
+
+</code></pre></li></ul><p><a name="charges"></a></p><h3>Charges</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Charges"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#charges">charges</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">99.99
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">99.99
+
+</code></pre></li></ul><p><a name="city"></a></p><h3>City</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "City or town."</li><li><strong>Sensible Values</strong>: [ "Las Vegas", "Paris", "London", "Beijing", "Tokyo" ]</li></ul></li><li><strong>ID</strong>: <a href="#city">city</a></li><li><strong>Max</strong>: 50</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Las Vegas&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Las Vegas&quot;
+
+</code></pre></li></ul><p><a name="contact_email"></a></p><h3>Contact Email</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Contact email address"</li><li><strong>Sensible Values</strong>: [ "jane@acme.org", "mulan@kemper.io" ]</li></ul></li><li><strong>ID</strong>: <a href="#contact_email">contact_email</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Regex Pattern</strong>: ".+@.+..{2,20}"</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;mulan@kemper.io&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;mulan@kemper.io&quot;
+
+</code></pre></li></ul><p><a name="count"></a></p><h3>Count</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Count."</li><li><strong>Sensible Values</strong>: [ 12, 3, 999, 4242, 342 ]</li></ul></li><li><strong>ID</strong>: <a href="#count">count</a></li><li><strong>Parent ID</strong>: :diction/long</li><li><strong>Referenced By</strong>: [ <a href="#product">product</a>, <a href="#line_item">line_item</a> ]</li><li><strong>Type</strong>: :long</li><li><strong>JSON Example</strong>:<pre><code class="json">4242
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">4242
+
+</code></pre></li></ul><p><a name="country"></a></p><h3>Country</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Country code."</li><li><strong>Sensible Values</strong>: [ "US", "CH", "FR" ]</li></ul></li><li><strong>ID</strong>: <a href="#country">country</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;CH&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;CH&quot;
+
+</code></pre></li></ul><p><a name="customer_id"></a></p><h3>Customer ID</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Customer ID"</li><li><strong>Sensible Values</strong>: [ "id1", "id2", "abcdef.id" ]</li></ul></li><li><strong>ID</strong>: <a href="#customer_id">customer_id</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#order">order</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;id2&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;id2&quot;
+
+</code></pre></li></ul><p><a name="delivery_fee"></a></p><h3>Delivery Fee</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Delivery fee"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#delivery_fee">delivery_fee</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">0.34
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">0.34
+
+</code></pre></li></ul><p><a name="email"></a></p><h3>Email</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Email address"</li><li><strong>Sensible Values</strong>: [ "jane@acme.org", "mulan@cater.io" ]</li></ul></li><li><strong>ID</strong>: <a href="#email">email</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Regex Pattern</strong>: ".+@.+..{2,20}"</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;jane@acme.org&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;jane@acme.org&quot;
+
+</code></pre></li></ul><p><a name="fee"></a></p><h3>Fee</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Fee."</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#fee">fee</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">0.34
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">0.34
+
+</code></pre></li></ul><p><a name="fees"></a></p><h3>Fees</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Fees"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#fees">fees</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">42.42
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">42.42
+
+</code></pre></li></ul><p><a name="first_name"></a></p><h3>First Name</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "First or given name."</li><li><strong>Sensible Values</strong>: [ "John", "Jane", "Juan", "Maria", "Abhul" ]</li></ul></li><li><strong>ID</strong>: <a href="#first_name">first_name</a></li><li><strong>Max</strong>: 50</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Jane&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Jane&quot;
+
+</code></pre></li></ul><p><a name="home_phone"></a></p><h3>Home Phone</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Home phone"</li><li><strong>Sensible Values</strong>: [ "+1 (415) 622-1233", "+42 34 2344 234" ]</li></ul></li><li><strong>ID</strong>: <a href="#home_phone">home_phone</a></li><li><strong>Max</strong>: 30</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;+42 34 2344 234&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;+42 34 2344 234&quot;
+
+</code></pre></li></ul><p><a name="id"></a></p><h3>ID</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Unique identifier."</li><li><strong>Sensible Values</strong>: [ "id1", "id2", "abcdef.id" ]</li></ul></li><li><strong>ID</strong>: <a href="#id">id</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#product">product</a>, <a href="#manufacturer">manufacturer</a>, <a href="#order">order</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;id2&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;id2&quot;
+
+</code></pre></li></ul><p><a name="ids"></a></p><h3>IDs</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Unique identifiers."</li><li><strong>Sensible Min</strong>: 1</li><li><strong>Sensible Max</strong>: 4</li></ul></li><li><strong>ID</strong>: <a href="#ids">ids</a></li><li><strong>Type</strong>: :vector</li><li><strong>Vector Of</strong>: <a href="#id">id</a></li><li><strong>JSON Example</strong>:<pre><code class="json">&#91; &quot;abcdef.id&quot;, &quot;id2&quot; &#93;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&#91;&quot;abcdef.id&quot; &quot;id2&quot;&#93;
+
+</code></pre></li></ul><p><a name="label"></a></p><h3>Label</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Label"</li><li><strong>Sensible Values</strong>: [ "Label #1", "Label A", "Label Z" ]</li></ul></li><li><strong>ID</strong>: <a href="#label">label</a></li><li><strong>Max</strong>: 100</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Label Z&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Label Z&quot;
+
+</code></pre></li></ul><p><a name="last_name"></a></p><h3>Last Name</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Last name or surname."</li><li><strong>Sensible Values</strong>: [ "Smith", "Lopez", "Nguyen", "Chang" ]</li></ul></li><li><strong>ID</strong>: <a href="#last_name">last_name</a></li><li><strong>Max</strong>: 50</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Nguyen&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Nguyen&quot;
+
+</code></pre></li></ul><p><a name="latitude"></a></p><h3>Latitude</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Latitude geo"</li></ul></li><li><strong>ID</strong>: <a href="#latitude">latitude</a></li><li><strong>Max</strong>: 90.0</li><li><strong>Min</strong>: -90.0</li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">-1.631840895832255
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">-1.631840895832255
+
+</code></pre></li></ul><p><a name="line_items"></a></p><h3>Line Items</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Line items."</li><li><strong>Sensible Min</strong>: 1</li><li><strong>Sensible Max</strong>: 3</li></ul></li><li><strong>ID</strong>: <a href="#line_items">line_items</a></li><li><strong>Referenced By</strong>: [ <a href="#order">order</a> ]</li><li><strong>Type</strong>: :vector</li><li><strong>Vector Of</strong>: <a href="#line_item">line_item</a></li><li><strong>JSON Example</strong>:<pre><code class="json">&#91; {
+  &quot;amount&quot; : 42.42,
+  &quot;charge&quot; : 1.23,
+  &quot;count&quot; : 342,
+  &quot;fee&quot; : 99.99,
+  &quot;product&#95;id&quot; : &quot;id1&quot;,
+  &quot;subtotal&quot; : 42.42,
+  &quot;total&quot; : 3.23,
+  &quot;unit&#95;cost&quot; : 99.99
+}, {
+  &quot;amount&quot; : 1.23,
+  &quot;charge&quot; : 99.99,
+  &quot;count&quot; : 12,
+  &quot;fee&quot; : 99.99,
+  &quot;product&#95;id&quot; : &quot;id2&quot;,
+  &quot;subtotal&quot; : 0.34,
+  &quot;total&quot; : 3.23,
+  &quot;unit&#95;cost&quot; : 1.23
+}, {
+  &quot;amount&quot; : 99.99,
+  &quot;charge&quot; : 1.23,
+  &quot;count&quot; : 342,
+  &quot;fee&quot; : 0.34,
+  &quot;product&#95;id&quot; : &quot;abcdef.id&quot;,
+  &quot;subtotal&quot; : 3.23,
+  &quot;total&quot; : 42.42,
+  &quot;unit&#95;cost&quot; : 0.34
+} &#93;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&#91;{:amount 42.42,
+  :charge 1.23,
+  :count 342,
+  :fee 99.99,
+  :product&#95;id &quot;id1&quot;,
+  :subtotal 42.42,
+  :total 3.23,
+  :unit&#95;cost 99.99}
+ {:amount 1.23,
+  :charge 99.99,
+  :count 12,
+  :fee 99.99,
+  :product&#95;id &quot;id2&quot;,
+  :subtotal 0.34,
+  :total 3.23,
+  :unit&#95;cost 1.23}
+ {:amount 99.99,
+  :charge 1.23,
+  :count 342,
+  :fee 0.34,
+  :product&#95;id &quot;abcdef.id&quot;,
+  :subtotal 3.23,
+  :total 42.42,
+  :unit&#95;cost 0.34}&#93;
+
+</code></pre></li></ul><p><a name="long_lat"></a></p><h3>Long Lat</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Longitude and latitude pair"</li></ul></li><li><strong>ID</strong>: <a href="#long_lat">long_lat</a></li><li><strong>Referenced By</strong>: [ <a href="#person">person</a> ]</li><li><strong>Tuple</strong>: [ <a href="#longitude">longitude</a>, <a href="#latitude">latitude</a> ]</li><li><strong>Type</strong>: :tuple</li><li><strong>JSON Example</strong>:<pre><code class="json">&#91; -24.741398112116002, -63.312992930504734 &#93;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&#91;-24.741398112116002 -63.312992930504734&#93;
+
+</code></pre></li></ul><p><a name="long_lats"></a></p><h3>Long Lats</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "List of longitude/latitude pairs."</li><li><strong>Sensible Min</strong>: 1</li><li><strong>Sensible Max</strong>: 1</li></ul></li><li><strong>ID</strong>: <a href="#long_lats">long_lats</a></li><li><strong>Max</strong>: 10</li><li><strong>Min</strong>: 1</li><li><strong>Type</strong>: :vector</li><li><strong>Vector Of</strong>: <a href="#long_lat">long_lat</a></li><li><strong>JSON Example</strong>:<pre><code class="json">&#91; &#91; 130.52594424795262, -50.49902689519405 &#93; &#93;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&#91;&#91;130.52594424795262 -50.49902689519405&#93;&#93;
+
+</code></pre></li></ul><p><a name="longitude"></a></p><h3>Longitude</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Longitude geo (-180 - 180)"</li></ul></li><li><strong>ID</strong>: <a href="#longitude">longitude</a></li><li><strong>Max</strong>: 180.0</li><li><strong>Min</strong>: -180.0</li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">163.2030305439634
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">163.2030305439634
+
+</code></pre></li></ul><p><a name="manufacturer_id"></a></p><h3>Manufacturer ID</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Manufacturer ID"</li><li><strong>Sensible Values</strong>: [ "man1", "man2", "man3", "man99" ]</li></ul></li><li><strong>ID</strong>: <a href="#manufacturer_id">manufacturer_id</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#product">product</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;man1&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;man1&quot;
+
+</code></pre></li></ul><p><a name="name"></a></p><h3>Name</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Name"</li><li><strong>Sensible Values</strong>: [ "Name #1", "Name A", "Name as such" ]</li></ul></li><li><strong>ID</strong>: <a href="#name">name</a></li><li><strong>Max</strong>: 100</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Name A&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Name A&quot;
+
+</code></pre></li></ul><p><a name="notes"></a></p><h3>Notes</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Notes"</li><li><strong>Sensible Values</strong>: [ "Some notes", "Notes are here", "And more notes" ]</li></ul></li><li><strong>ID</strong>: <a href="#notes">notes</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;Some notes&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;Some notes&quot;
+
+</code></pre></li></ul><p><a name="notification_email"></a></p><h3>Notification Email</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Automated notification address"</li><li><strong>Sensible Values</strong>: [ "orders@acme.org", "fulfilment@sunshine.io" ]</li></ul></li><li><strong>ID</strong>: <a href="#notification_email">notification_email</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Regex Pattern</strong>: ".+@.+..{2,20}"</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;fulfilment@sunshine.io&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;fulfilment@sunshine.io&quot;
+
+</code></pre></li></ul><p><a name="phone"></a></p><h3>Phone</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Phone number"</li><li><strong>Sensible Values</strong>: [ "+1 (415) 622-1233", "+42 34 2344 234" ]</li></ul></li><li><strong>ID</strong>: <a href="#phone">phone</a></li><li><strong>Max</strong>: 30</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;+42 34 2344 234&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;+42 34 2344 234&quot;
+
+</code></pre></li></ul><p><a name="postal_code"></a></p><h3>Postal Code</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Postal or zip code."</li><li><strong>Sensible Values</strong>: [ "89521", "NR14 7PZ" ]</li></ul></li><li><strong>ID</strong>: <a href="#postal_code">postal_code</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;89521&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;89521&quot;
+
+</code></pre></li></ul><p><a name="product_id"></a></p><h3>Product ID</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Product ID."</li><li><strong>Sensible Values</strong>: [ "id1", "id2", "abcdef.id" ]</li></ul></li><li><strong>ID</strong>: <a href="#product_id">product_id</a></li><li><strong>Max</strong>: 64</li><li><strong>Min</strong>: 0</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;abcdef.id&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;abcdef.id&quot;
+
+</code></pre></li></ul><p><a name="province"></a></p><h3>Province</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Province or state."</li><li><strong>Sensible Values</strong>: [ "NV", "ID", "WY" ]</li></ul></li><li><strong>ID</strong>: <a href="#province">province</a></li><li><strong>Max</strong>: 50</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a>, <a href="#manufacturer">manufacturer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;ID&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;ID&quot;
+
+</code></pre></li></ul><p><a name="sales_tax"></a></p><h3>Sales Tax</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Sales Tax"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#sales_tax">sales_tax</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">99.99
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">99.99
+
+</code></pre></li></ul><p><a name="sku"></a></p><h3>Sku</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "SKU"</li><li><strong>Sensible Values</strong>: [ "sku1", "sku2", "sku99" ]</li></ul></li><li><strong>ID</strong>: <a href="#sku">sku</a></li><li><strong>Max</strong>: 50</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#product">product</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;sku1&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;sku1&quot;
+
+</code></pre></li></ul><p><a name="subtotal"></a></p><h3>Subtotal</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Subtotal."</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#subtotal">subtotal</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a>, <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">42.42
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">42.42
+
+</code></pre></li></ul><p><a name="tag"></a></p><h3>Tag</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Smart tag"</li><li><strong>Sensible Values</strong>: [ "tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag99" ]</li></ul></li><li><strong>ID</strong>: <a href="#tag">tag</a></li><li><strong>Max</strong>: 32</li><li><strong>Min</strong>: 2</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;tag4&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;tag4&quot;
+
+</code></pre></li></ul><p><a name="tags"></a></p><h3>Tags</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Smart tags"</li><li><strong>Sensible Min</strong>: 1</li><li><strong>Sensible Max</strong>: 4</li></ul></li><li><strong>ID</strong>: <a href="#tags">tags</a></li><li><strong>Max</strong>: 12</li><li><strong>Min</strong>: 1</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a> ]</li><li><strong>Set Of</strong>: <a href="#tag">tag</a></li><li><strong>Type</strong>: :set</li><li><strong>JSON Example</strong>:<pre><code class="json">&#91; &quot;tag2&quot;, &quot;tag99&quot; &#93;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">#{&quot;tag2&quot; &quot;tag99&quot;}
+
+</code></pre></li></ul><p><a name="tax"></a></p><h3>Tax</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Tax."</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#tax">tax</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">99.99
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">99.99
+
+</code></pre></li></ul><p><a name="taxes"></a></p><h3>Taxes</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Taxes"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#taxes">taxes</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">42.42
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">42.42
+
+</code></pre></li></ul><p><a name="total"></a></p><h3>Total</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Total"</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#total">total</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#line_item">line_item</a>, <a href="#order">order</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">1.23
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">1.23
+
+</code></pre></li></ul><p><a name="unit_cost"></a></p><h3>Unit Cost</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Unit cost."</li><li><strong>Sensible Values</strong>: [ 3.23, 0.34, 99.99, 42.42, 1.23 ]</li></ul></li><li><strong>ID</strong>: <a href="#unit_cost">unit_cost</a></li><li><strong>Parent ID</strong>: :diction/double</li><li><strong>Referenced By</strong>: [ <a href="#product">product</a>, <a href="#line_item">line_item</a> ]</li><li><strong>Type</strong>: :double</li><li><strong>JSON Example</strong>:<pre><code class="json">99.99
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">99.99
+
+</code></pre></li></ul><p><a name="work_phone"></a></p><h3>Work Phone</h3><ul><li><strong>Meta</strong>:<ul><li><strong>Description</strong>: "Work phone"</li><li><strong>Sensible Values</strong>: [ "+1 (415) 622-1233", "+42 34 2344 234" ]</li></ul></li><li><strong>ID</strong>: <a href="#work_phone">work_phone</a></li><li><strong>Max</strong>: 30</li><li><strong>Min</strong>: 1</li><li><strong>Parent ID</strong>: :diction/string</li><li><strong>Referenced By</strong>: [ <a href="#person">person</a>, <a href="#customer">customer</a> ]</li><li><strong>Type</strong>: :string</li><li><strong>JSON Example</strong>:<pre><code class="json">&quot;+1 &#40;415&#41; 622-1233&quot;
+</code></pre></li><li><strong>EDN Example</strong>:<pre><code class="clojure">&quot;+1 &#40;415&#41; 622-1233&quot;
+
+</code></pre></li></ul>
+</div></body>
+</html>
