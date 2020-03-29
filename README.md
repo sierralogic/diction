@@ -542,6 +542,48 @@ To create a custom data element type, you need the following:
                                      "diction.demo$validate_odd_pos_int@640ed2e7"]}},
   :msg "Value '34' for field :field-of-odd-pos-int needs to be odd."}]
 
+(diction/explain :field-of-odd-pos-int 34.3)
+;=>
+[{:id :field-of-odd-pos-int,
+  :v 34.3,
+  :entry {:id :field-of-odd-pos-int,
+          :element {:id :field-of-odd-pos-int,
+                    :type :odd-pos-int,
+                    :gen-f #object[diction.core$wrap_gen_f$fn__13635
+                                   0x1cde4602
+                                   "diction.core$wrap_gen_f$fn__13635@1cde4602"],
+                    :valid-f #object[diction.demo$validate_odd_pos_int
+                                     0x640ed2e7
+                                     "diction.demo$validate_odd_pos_int@640ed2e7"]}},
+  :msg "Value '34.3' for field :field-of-odd-pos-int needs to be an integer."}
+ {:id :field-of-odd-pos-int,
+  :v 34.3,
+  :entry {:id :field-of-odd-pos-int,
+          :element {:id :field-of-odd-pos-int,
+                    :type :odd-pos-int,
+                    :gen-f #object[diction.core$wrap_gen_f$fn__13635
+                                   0x1cde4602
+                                   "diction.core$wrap_gen_f$fn__13635@1cde4602"],
+                    :valid-f #object[diction.demo$validate_odd_pos_int
+                                     0x640ed2e7
+                                     "diction.demo$validate_odd_pos_int@640ed2e7"]}},
+  :msg "Value '34.3' for field :field-of-odd-pos-int needs to be odd."}]
+
+(diction/explain :field-of-odd-pos-int "meh")
+;=>
+[{:id :field-of-odd-pos-int,
+  :v "meh",
+  :entry {:id :field-of-odd-pos-int,
+          :element {:id :field-of-odd-pos-int,
+                    :type :odd-pos-int,
+                    :gen-f #object[diction.core$wrap_gen_f$fn__13635
+                                   0x1cde4602
+                                   "diction.core$wrap_gen_f$fn__13635@1cde4602"],
+                    :valid-f #object[diction.demo$validate_odd_pos_int
+                                     0x640ed2e7
+                                     "diction.demo$validate_odd_pos_int@640ed2e7"]}},
+  :msg "Value 'meh' for field :field-of-odd-pos-int needs to be an integer."}]
+
 (diction/lookup :field-of-odd-pos-int)
 ; =>
 {:id :field-of-odd-pos-int,
