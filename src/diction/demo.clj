@@ -311,3 +311,44 @@
   (diction/imports! dictionary)
   (spit "demo.html" (doc/->html {:title "Demo Data Dictionary"}))
   (spit "demo.md" (doc/->markdown "Demo Data Dictionary")))
+
+;; demo of custom data type
+
+(defn generate-odd-pos-int
+  "Generate a simple odd, positive integer."
+  []
+  (-> (rand)
+      (* (/ Integer/MAX_VALUE 2))
+      (int)
+      (* 2)
+      inc))
+
+(defn validate-odd-pos-int
+  "Validate a simple odd, positive integer."
+  [v id entry]
+  (when (not (and (int? v) (odd? v)))
+    (let [fail {:id id :v v :entry entry}]
+      (filter #(not (nil? %))
+              [(when-not (int? v)
+                 (assoc fail
+                   :msg (str "Value '" v "' for field " id " needs to be an integer.")))
+               (when-not (if (number? v)
+                           (odd? (long v))
+                           true)
+                 (assoc fail
+                   :msg (str "Value '" v "' for field " id " needs to be odd.")))]))))
+
+(defn normalize-odd-pos-int
+  "Normalizes the odd positive int number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
+  the element map `m`."
+  [m]
+  (if (= :odd-pos-int (:type m))
+    (assoc m :gen-f (diction/wrap-gen-f generate-odd-pos-int)
+             :valid-f validate-odd-pos-int)
+    m))
+
+(diction/type-normalizer! normalize-odd-pos-int)
+
+(def odd-pos-int! (partial diction/custom-element! :odd-pos-int))
+
+(odd-pos-int! :field-of-odd-pos-int)

@@ -14,13 +14,6 @@
 (def dictionary (atom nil))
 (defn dictionary! [d] (reset! dictionary d))
 
-
-;(defn clear-dictionary!
-;  "Clears the `dictionary` completely to `nil`.  You must re-register the
-;  dictionary after."
-;  []
-;  (dictionary! nil))
-
 (def sensible (atom true))
 (defn sensible! [s] (reset! sensible s))
 
@@ -820,7 +813,7 @@
     m))
 
 (defn normalize-long
-  "Normalizes the long number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
+  "Normalizes the long number entry type elements (if necessary) given element map `m`.  If not a long number type, passhtru
   the element map `m`."
   [m]
   (if (= :long (:type m))
@@ -829,7 +822,7 @@
     m))
 
 (defn normalize-float
-  "Normalizes the float number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
+  "Normalizes the float number entry type elements (if necessary) given element map `m`.  If not a float number type, passhtru
   the element map `m`."
   [m]
   (if (= :float (:type m))
@@ -838,7 +831,7 @@
     m))
 
 (defn normalize-double
-  "Normalizes the double number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
+  "Normalizes the double number entry type elements (if necessary) given element map `m`.  If not a double number type, passhtru
   the element map `m`."
   [m]
   (if (= :double (:type m))
@@ -1033,7 +1026,11 @@
 (defn element!
   "Registers element with id `id`, element map `element` with optional element context `ctx and parent element id `parent-id`.  The
    parent element may be used as a base for the element definition."
-  ([{:keys [parent-id id element ctx]}] (element! parent-id id element ctx))
+  ([element-info]
+   (if (map? element-info)
+     (let [{:keys [parent-id id element ctx]} element-info]
+       (element! parent-id id element ctx))
+     (element! nil element-info nil nil)))
   ([id element] (element! nil id element nil))
   ([id element ctx] (element! nil id element ctx))
   ([parent-id id element ctx]
@@ -1050,6 +1047,24 @@
                       (when merged-ctx {:ctx merged-ctx}))]
      (swap! dictionary assoc id entry)
      entry)))
+
+(defn custom-element!
+  "Registers custom element with custom element init 'custom-elem`, id `id`, element map `element` with optional element context `ctx and parent element id `parent-id`.  The
+   parent element may be used as a base for the element definition."
+  ([custom-elem element-info]
+   (if (map? element-info)
+     (let [{:keys [parent-id id element ctx]} element-info]
+       (custom-element! custom-elem parent-id id element ctx))
+     (custom-element! custom-elem nil element-info nil nil)))
+  ([custom-elem id element] (custom-element! custom-elem nil id element nil))
+  ([custom-elem id element ctx] (custom-element! custom-elem nil id element ctx))
+  ([custom-elem parent-id id element ctx]
+   (element! parent-id id
+             (merge (if (map? custom-elem)
+                      custom-elem
+                      {:type custom-elem})
+                    element)
+             ctx)))
 
 (defn resolve-unqualified
   "Resolve unqualified element keys given entitiy maps `es` and the
@@ -1327,9 +1342,7 @@
 
   (document! :diction/foobar [:diction/foo] [:diction/ans])
 
-
   )
-
 
 ;;;; Element Functions --------------------------------------------------------------------------
 
@@ -1409,6 +1422,8 @@
 (declare groom)
 
 (defn groom-vector
+  "Grooms a vector of elements for `parent-id`, `id`, value `v` and optional
+  context `ctx`."
   ([parent-id id v] (groom-vector parent-id id v nil))
   ([parent-id id v ctx]
    (when-let [entry (lookup id)]
@@ -1520,7 +1535,8 @@
            (when help {:help help})
            (when audit {:audit audit}))))
 
-(defn annotate-summary
+(defn- annotate-summary
+  "Annotates a summary of data element `entry`."
   [entry]
   (let [id (:id entry)
         element (:element entry)
@@ -1649,40 +1665,6 @@
             nil
             (or element-ids (filter filter-out-diction-elements (keys @dictionary))))))
 
-
-(string! ::fullname)
-(string! ::first-name)
-(string! ::middle-name)
-(string! ::last-name)
-(string! ::aka)
-
-(joda! ::dob)
-(joda! ::dod)
-
-;; (entity! ::person [::last-name ::dob] [::first-name ::fullname ::middle-name ::aka ::dod])
-
-(uuid! ::id)
-(string! ::type)
-(string! ::label)
-(string! ::description)
-
-(long! ::answer)
-(long! ::count)
-(double! ::metric)
-(double! ::tau)
-
-(element! ::person {:type :map
-                    req-key [::last-name ::dob]
-                    opt-key [::first-name ::fullname
-                             ::middle-name ::aka ::dod]})
-(element! ::handle {:type :map
-                    req-key [::id]
-                    opt-un-key [::label ::description
-                                ::type]})
-(element! ::muck {:type :map
-                  req-un-key [::answer]
-                  opt-key [::id ::label]})
-
 (def func-types {double! #{:double}
                  element! #{:document :map :entity}
                  enum! #{:enum}
@@ -1695,7 +1677,7 @@
                  uuid! #{:uuid}
                  vector! #{:vector :list}})
 
-(defn generate-lookups
+(defn- generate-lookups
   [lm]
   (reduce-kv #(reduce (fn [avk vk]
                         (assoc avk vk %2))
@@ -1721,16 +1703,6 @@
     (catch Exception _
       "")))
 
-;(defn import-elements!
-;  [dm]
-;  (when-let [es (:elements dm)]
-;    (reduce #(let [{:keys [id parent-id ctx]} %2
-;                   args [id %2 ctx]
-;                   pargs (if parent-id (cons parent-id args) args)]
-;               (conj (or % []) (apply element! pargs)))
-;            nil
-;            es)))
-
 (def export-exclude-prefix "diction")
 
 (defn export-elements!
@@ -1750,10 +1722,6 @@
 (defn export-elements-to!
   [target]
   (spit target {:elements (export-elements!)}))
-
-;(defn import-elements-from!
-;  [source]
-;  (import-elements! (-> source slurp edn/read-string)))
 
 (defn clean
   [elem]

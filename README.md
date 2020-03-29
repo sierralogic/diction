@@ -438,6 +438,124 @@ Otherwise, the return is a `vector` of failure maps with the following shape:
 
 ```
 
+### Custom Data Element Types
+
+To create a custom data element type, you need the following:
+
+- type generator function
+- type validation function
+- type normalization function
+- add type normalizer to diction
+- partial type element registration function (optional)
+
+#### Custom Type Generation Function
+
+```clojure
+(defn generate-odd-pos-int
+  "Generate a simple odd, positive integer."
+  []
+  (-> (rand)
+      (* (/ Integer/MAX_VALUE 2))
+      (int)
+      (* 2)
+      inc))
+```
+
+#### Custom Type Validation Function
+
+```clojure
+(defn validate-odd-pos-int
+  "Validate a simple odd, positive integer."
+  [v id entry]
+  (when (not (and (int? v) (odd? v)))
+    (let [fail {:id id :v v :entry entry}]
+      (filter #(not (nil? %))
+              [(when-not (int? v)
+                 (assoc fail
+                   :msg (str "Value '" v "' for field " id " needs to be an integer.")))
+               (when-not (if (number? v)
+                           (odd? (long v))
+                           true)
+                 (assoc fail
+                   :msg (str "Value '" v "' for field " id " needs to be odd.")))]))))
+```
+
+#### Custom Normalization Function
+
+```clojure
+(defn normalize-odd-pos-int
+  "Normalizes the odd positive int number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
+  the element map `m`."
+  [m]
+  (if (= :odd-pos-int (:type m))
+    (assoc m :gen-f (diction/wrap-gen-f generate-odd-pos-int)
+             :valid-f validate-odd-pos-int)
+    m))
+```
+
+#### Add Custom Type Normalizer to Diction
+
+```clojure
+(diction/type-normalizer! normalize-odd-pos-int)
+```
+
+#### Create a Custom Data Element Registration Function
+
+```clojure
+(def odd-pos-int! (partial diction/custom-element! :odd-pos-int))
+```
+
+#### Register Custom Data Type Field
+
+```clojure
+(odd-pos-int! :field-of-odd-pos-int)
+```
+
+#### Exercising Custom Data Type
+
+```clojure
+
+(diction/generate :field-of-odd-pos-int)
+; => 2115533555
+
+(diction/valid? :field-of-odd-pos-int 33)
+; => true
+
+(diction/valid? :field-of-odd-pos-int 34)
+; => false
+
+(diction/explain :field-of-odd-pos-int 33)
+; => nil
+
+(diction/explain :field-of-odd-pos-int 34)
+; =>
+[{:id :field-of-odd-pos-int,
+  :v 34,
+  :entry {:id :field-of-odd-pos-int,
+          :element {:id :field-of-odd-pos-int,
+                    :type :odd-pos-int,
+                    :gen-f #object[diction.core$wrap_gen_f$fn__13635
+                                   0x1cde4602
+                                   "diction.core$wrap_gen_f$fn__13635@1cde4602"],
+                    :valid-f #object[diction.demo$validate_odd_pos_int
+                                     0x640ed2e7
+                                     "diction.demo$validate_odd_pos_int@640ed2e7"]}},
+  :msg "Value '34' for field :field-of-odd-pos-int needs to be odd."}]
+
+(diction/lookup :field-of-odd-pos-int)
+; =>
+{:id :field-of-odd-pos-int,
+ :element {:id :field-of-odd-pos-int,
+           :type :odd-pos-int,
+           :gen-f #object[diction.core$wrap_gen_f$fn__13635
+                          0x1cde4602
+                          "diction.core$wrap_gen_f$fn__13635@1cde4602"],
+           :valid-f #object[diction.demo$validate_odd_pos_int
+                            0x640ed2e7
+                            "diction.demo$validate_odd_pos_int@640ed2e7"]}}
+
+```
+
 ### Validation Rules
 
 ```clojure

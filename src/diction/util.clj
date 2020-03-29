@@ -290,3 +290,14 @@
         v))
     (catch Exception _
       v)))
+
+(defn polite-conj
+  "Politely conjoins element `x` to list `v` iff `x` is non-nil."
+  [v x & xs]
+  (if (empty? xs)
+    (if (nil? x)
+      v
+      (conj (or v []) x))
+    (reduce #(polite-conj % %2)
+            v
+            (cons x xs))))
