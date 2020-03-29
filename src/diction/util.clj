@@ -272,3 +272,21 @@
   "Equal chance for true or false."
   []
   (odd? (System/currentTimeMillis)))
+
+(defn force-in-range
+  "Force numeric value `v` in range with `min` and `max`."
+  [min max v]
+  (try
+    (if min
+      (if (< v min)
+        min
+        (if (> v max)
+          max
+          v))
+      (if max
+        (if (> v max)
+          max
+          v)
+        v))
+    (catch Exception _
+      v)))

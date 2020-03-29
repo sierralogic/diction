@@ -1051,15 +1051,6 @@
      (swap! dictionary assoc id entry)
      entry)))
 
-;(defn polite-assoc
-;  "Politely associate key `k` with value `v` to map `m` iff there is no existing entry for
-;  `k` and `v` in `m`."
-;  [m k v]
-;  (when (and k v)
-;    (if-let [xv (get m k)]
-;      m
-;      (assoc m k v))))
-
 (defn resolve-unqualified
   "Resolve unqualified element keys given entitiy maps `es` and the
   `key` of either `required-un` or `optional-un`."
@@ -1850,7 +1841,6 @@
   (let [res (reduce #(conj (or % []) (import! %2))
                     nil
                     elements)]
-
     res))
 
 (defn import-from-file!
