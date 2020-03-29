@@ -461,7 +461,7 @@ To create a custom data element type, you need the following:
   []
   (-> (rand)
       (* (/ Integer/MAX_VALUE 2))
-      (int)
+      int
       (* 2)
       inc))
 ```

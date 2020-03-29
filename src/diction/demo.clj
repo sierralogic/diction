@@ -319,7 +319,7 @@
   []
   (-> (rand)
       (* (/ Integer/MAX_VALUE 2))
-      (int)
+      int
       (* 2)
       inc))
 
