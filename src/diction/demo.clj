@@ -15,6 +15,7 @@
 
 
 (def dictionary
+  "Demo data dictionary as list of data element maps."
   [
 
    {:id :first_name
@@ -307,6 +308,8 @@
    ])
 
 (defn generate
+  "Imports demo data elements and generated `demo.html` and `demo.md` documentation
+  files in root folder."
   []
   (diction/imports! dictionary)
   (spit "demo.html" (doc/->html {:title "Demo Data Dictionary"}))
@@ -349,6 +352,8 @@
 
 (diction/type-normalizer! normalize-odd-pos-int)
 
-(def odd-pos-int! (partial diction/custom-element! :odd-pos-int))
+(def odd-pos-int!
+  "Programmatic custom registration function for demo custom data element."
+  (partial diction/custom-element! :odd-pos-int))
 
 (odd-pos-int! :field-of-odd-pos-int)

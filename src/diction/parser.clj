@@ -30,8 +30,9 @@
               dashes]]
             ))
 
-
 (def transformer-vector-suppress-italics
+  "Custom altered markdown conversion to suppress underscore italics to allow for
+  underscores in field names, etc."
   [mt/set-line-state
    mt/empty-line
    inhibit

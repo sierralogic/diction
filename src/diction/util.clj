@@ -10,14 +10,18 @@
   [java.util.regex.Pattern
    org.joda.time.DateTime])
 
-(def add-encoders-result (reduce #(conj %
-                                        (add-encoder %2
-                                                     (fn [c jsonGenerator]
-                                                       (.writeString jsonGenerator (str c)))))
-                                 nil
-                                 json-encode-to-string-classes))
+(def add-encoders-result
+  "Adds JSON encodes default to `str` to not blow up EDN->JSON conversions."
+  (reduce #(conj %
+                 (add-encoder %2
+                              (fn [c jsonGenerator]
+                                (.writeString jsonGenerator (str c)))))
+          nil
+          json-encode-to-string-classes))
 
-(def joda-class (class (t/now)))
+(def joda-class
+  "Joda class variable."
+  (class (t/now)))
 
 (defn polite-assoc
   "Politely associates in map `m` with key `k` the value `v` iff
@@ -96,7 +100,7 @@
       (str x))))
 
 (defn ->kw
-  "Convert `xs to keyword."
+  "Convert `xs` to keyword."
   [x]
   (if (keyword? x)
     x
@@ -104,7 +108,9 @@
         str
         keyword)))
 
-(def rndm (Random.))
+(def rndm
+  "Generates a random number."
+  (Random.))
 
 (defn ->json
   "Convert map `m` to JSON string."
@@ -154,31 +160,44 @@
   (let [[k v] kv]
     [(kf k) v]))
 
-(def snakify-keys (partial walk-apply-key-f ->snake))
-(def skewer-keys (partial walk-apply-key-f ->skewer-kw))
+(def ^:private snakify-keys
+  "Function to convert keys to snake_case"
+  (partial walk-apply-key-f ->snake))
 
-(def snake-keys (partial apply-f-to-keys snakify-keys))
-(def skewer-keys (partial apply-f-to-keys skewer-keys))
+(def ^:private skewer-keys
+  "Function to convert keys to skewer-case."
+  (partial walk-apply-key-f ->skewer-kw))
 
+(def snake-keys
+  "Convert keys to snake_case."
+  (partial apply-f-to-keys snakify-keys))
 
-(def default-label-replacements {"Id" "ID"
-                                 "Ids" "IDs"
-                                 "Ssn" "SSN"
-                                 "Num" "No."
-                                 "Cd" "Code"
-                                 "Svc" "Service"
-                                 "Pct" "Percent"
-                                 "Roi" "ROI"
-                                 "Mo" "Month"
-                                 "Yr" "Year"
-                                 "Wk" "Week"
-                                 "Loe" "LOE"
-                                 "No" "No."
-                                 "Ein" "EIN"
-                                 "Required Un" "Required (Unqualified)"
-                                 "Optional Un" "Optional (Unqualified)"})
+(def skewer-keys
+  "Convert keys to skewer-case."
+  (partial apply-f-to-keys skewer-keys))
 
-(def label-replacements (atom default-label-replacements))
+(def default-label-replacements
+  "Default label replacements, mostly acronyms and abbreviations."
+  {"Id" "ID"
+   "Ids" "IDs"
+   "Ssn" "SSN"
+   "Num" "No."
+   "Cd" "Code"
+   "Svc" "Service"
+   "Pct" "Percent"
+   "Roi" "ROI"
+   "Mo" "Month"
+   "Yr" "Year"
+   "Wk" "Week"
+   "Loe" "LOE"
+   "No" "No."
+   "Ein" "EIN"
+   "Required Un" "Required (Unqualified)"
+   "Optional Un" "Optional (Unqualified)"})
+
+(def label-replacements
+  "Atom for label replacement map."
+  (atom default-label-replacements))
 
 (defn label-replacements!
   "Sets the label replacements with `lrs` map.

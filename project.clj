@@ -13,5 +13,6 @@
   :repositories [["github" {:url "https://maven.pkg.github.com/sierralogic/gpr"
                             :username [:gpg :env/github_username]
                             :password [:gpg :env/github_password]}]]
+  :plugins [[lein-codox "0.10.7"]]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

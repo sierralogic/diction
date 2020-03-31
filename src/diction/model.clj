@@ -3,16 +3,24 @@
             [diction.core :as diction]
             [diction.documentation :as doc]))
 
-(def diction-types [:double :document :map :entity :enum :float :int :integer
-                    :joda :date :datetime :keyword :kw :long :text :string
-                    :uuid :vector :list :tuple :poly-vector])
+(def diction-types
+  "Core diction data element types."
+  [:double :document :map :entity :enum :float :int :integer
+   :joda :date :datetime :keyword :kw :long :text :string
+   :uuid :vector :list :tuple :poly-vector])
 
-(def diction-literals [:double :float :int :integer :joda :date :datetime :keyword
-                       :kw :long :text :string :uuid ])
+(def diction-literals
+  "Core diction literal data element types."
+  [:double :float :int :integer :joda :date :datetime :keyword
+   :kw :long :text :string :uuid ])
 
-(def diction-collections [:document :map :entity :enum :vector :list :tuple :poly-vector])
+(def diction-collections
+  "Core diction collection/list data element types."
+  [:document :map :entity :enum
+   :vector :list :tuple :poly-vector])
 
 (def dictionary
+  "Core diction data elements."
   [
 
    {:id :diction-element/id
@@ -194,6 +202,8 @@
     true))
 
 (defn generate
+  "Imports the core diction data element dictionary and then generates `elements.html`
+  and `elements.md` core data element documentation in root folder."
   []
   (diction/imports! dictionary)
   (spit "elements.html"
