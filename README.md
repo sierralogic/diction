@@ -2,6 +2,11 @@
 
 Diction is a Clojure library similar to spec but with added functionality and some batteries included.
 
+## Usage
+
+```
+[diction "0.2.2"]
+```
 ## Status of Diction
 
 Existing Clojure libraries/frameworks for data specifications, validation, and more:
