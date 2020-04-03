@@ -1,9 +1,9 @@
 (ns diction.guard
   (:require [diction.core :refer [explain generate] :as diction]))
 
-(def ^:dynamic *guard-fail-dynamic-f* nil)
+(def ^:dynamic *guard-fail-dynamic-f* "Dynamic variable for scoped guard fail handler function." nil)
 
-(defn default-guard-fail-f
+(defn- default-guard-fail-f
   "Default `guard-fail-f` function with signature [eid f v xvf failures & args]."
   [element-id f v xvf failures & args]
   {:status 400
@@ -15,7 +15,10 @@
           :element element-id
           :args (vec args)}})
 
-(def guard-fail-f (atom default-guard-fail-f))
+(def guard-fail-f
+  "Atom with guard fail function."
+  (atom default-guard-fail-f))
+
 (defn guard-fail-f!
   "Sets the guard fail function atom `guard-fail-f` to `f`.
   The `guard-fail-f` has a signature [element-id guarded-f arg-value-validated

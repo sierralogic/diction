@@ -11,14 +11,23 @@
             [miner.strgen :as sg])
   (:import (org.joda.time DateTime)))
 
-(def dictionary (atom nil))
-(defn dictionary! [d] (reset! dictionary d))
+(def dictionary "Atom that holds the dictionary data structure." (atom nil))
+(defn dictionary!
+  "Set the dictonary atom with new dictionary value `d`."
+  [d]
+  (reset! dictionary d))
 
-(def sensible (atom true))
-(defn sensible! [s] (reset! sensible s))
+(def sensible
+  "Atom that is the flag to force sensible values during documentation generation"
+  (atom true))
 
-(def ^:dynamic *force-sensible* nil)
-(def ^:dynamic *generate-all-fields* nil)
+(defn sensible!
+  "Sets the sensible flag atom to value `s`."
+  [s]
+  (reset! sensible s))
+
+(def ^:dynamic *force-sensible* "Dynamic force-sensible flag var for generated values for data element docs." nil)
+(def ^:dynamic *generate-all-fields* "Dynamic generate-all-fields flag var for forcing generation of all document fields." nil)
 
 (declare initialize-diction-elements!)
 (declare explain)
@@ -36,22 +45,25 @@
   [id]
   (get @dictionary id))
 
-(def info lookup)
-(def help lookup)
+(def info "Alias for element lookup function" lookup)
+(def help "Alias for element lookup function" lookup)
 
 (defn <-meta
+  "Returns the metadata of the element with `id`.  `nil` is none."
   [id]
   (when-let [lu (lookup id)]
     (get-in lu [:element :meta])))
 
-(def req-key :required)
-(def req-un-key :required-un)
-(def opt-key :optional)
-(def opt-un-key :optional-un)
+(def req-key "Required qualified/ns fields key." :required)
+(def req-un-key "Required unqualified fields key." :required-un)
+(def opt-key "Optional qualified/ns fields key." :optional)
+(def opt-un-key "Optional unqualified fields keys." :optional-un)
 
 ;;; Generative Function Testing ==============================================================
 
-(def functions (atom nil))
+(def functions
+  "Generative functions registry as atom."
+  (atom nil))
 
 (defn function!
   "Registers function id `id` for function `f` and vector of element ids for the arguments
@@ -63,10 +75,10 @@
                                        :arguments argument-element-ids
                                        :result result-element-id})))
 
-(def default-test-function-count 10)
+(def ^:private default-test-function-count 10)
 
 (defn functions!
-  "Registers list of function `fs`."
+  "Registers list of generative testing functions `fs`."
   [fs]
   (reduce #(conj (or % []) (function! %2))
           nil
@@ -109,7 +121,9 @@
 
 ;;; Validation Rules =======================================================================
 
-(def validation-rules (atom nil))
+(def validation-rules
+  "Validation rules as atom."
+  (atom nil))
 
 (defn validation-rule!
   "Registers a validation rule for element id `element-id`, rule id `id`, rule function `rule-f`, and optional
@@ -140,7 +154,9 @@
 
 ;;; Decoration Rules ===========================================================================
 
-(def decoration-rules (atom nil))
+(def decoration-rules
+  "Decoration rules as atom."
+  (atom nil))
 
 (defn decoration-rule!
   "Registers a decoration rule for element `element-id`, decoration rule id `rule-id`, rule function `rule-f`,
@@ -184,7 +200,9 @@
 
 ;;; Undecoration Rules ===========================================================================
 
-(def undecoration-rules (atom nil))
+(def undecoration-rules
+  "Undecoration rules as an atom."
+  (atom nil))
 
 (defn undecoration-rule!
   "Registers an undecoration rule for element `element-id`, undecoration rule id `rule-id`, rule function `rule-f`,
@@ -228,12 +246,12 @@
 
 ;;; Utilities --------------------------------------------------------------------
 
-(def years-millis (* 365 24 60 60 1000))
+(def ^:private years-millis (* 365 24 60 60 1000))
 
-(def document-keys-ns #{req-key opt-key})
-(def document-keys-un #{req-un-key opt-un-key})
+(def ^:private document-keys-ns #{req-key opt-key})
+(def ^:private document-keys-un #{req-un-key opt-un-key})
 
-(def document-keys (set/union document-keys-ns document-keys-un))
+(def ^:private document-keys (set/union document-keys-ns document-keys-un))
 
 (defn document?
   "Determines if `m` element is a document/map."
@@ -248,9 +266,9 @@
 
 ;;; Generators -----------------------------------------------------------------------
 
-(def uuid-regex-pattern "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
-(def uuid-regex (re-pattern uuid-regex-pattern))
-(def uuid-regex-legacy #"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
+(def ^:private uuid-regex-pattern "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
+(def ^:private uuid-regex (re-pattern uuid-regex-pattern))
+(def ^:private uuid-regex-legacy #"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
 (defn generate-regex-string
   "Generates a string using the regular expression `regex`.  Basic regex is supported only."
@@ -269,10 +287,10 @@
       first
       keyword))
 
-(def random-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ 1234567890-_=+")
-(def default-random-count 64)
+(def ^:private random-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ 1234567890-_=+")
+(def ^:private default-random-count 64)
 
-(def random-kw-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890")
+(def ^:private random-kw-chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ1234567890")
 
 (defn generate-random-string
   "Generates a random string given optional minimum length `min` and maximum lenghts `max`.
@@ -298,8 +316,8 @@
   ([min max random-str]
    (keyword (generate-random-string min max (or random-str random-kw-chars)))))
 
-(def default-gen-joda-min (- (System/currentTimeMillis) (* 10 years-millis)))
-(def default-gen-joda-max (+ (System/currentTimeMillis) (* 10 years-millis)))
+(def ^:private default-gen-joda-min (- (System/currentTimeMillis) (* 10 years-millis)))
+(def ^:private default-gen-joda-max (+ (System/currentTimeMillis) (* 10 years-millis)))
 
 (defn generate-random-joda
   "Generates random int numbers given optional minimum `min` and maximum `max`.
@@ -326,8 +344,8 @@
   []
   (odd? (System/currentTimeMillis)))
 
-(def default-gen-int-min Integer/MIN_VALUE)
-(def default-gen-int-max Integer/MAX_VALUE)
+(def ^:private default-gen-int-min Integer/MIN_VALUE)
+(def ^:private default-gen-int-max Integer/MAX_VALUE)
 
 (defn generate-random-int
   "Generates random int numbers given optional minimum `min` and maximum `max`.
@@ -348,8 +366,8 @@
            norm-max)))
      (util/random-int))))
 
-(def default-gen-long-min Long/MIN_VALUE)
-(def default-gen-long-max Long/MAX_VALUE)
+(def ^:private default-gen-long-min Long/MIN_VALUE)
+(def ^:private default-gen-long-max Long/MAX_VALUE)
 
 (defn generate-random-long
   "Generates random long numbers given optional minimum `min` and maximum `max`.
@@ -370,8 +388,8 @@
            norm-max)))
      (util/random-long))))
 
-(def default-gen-float-min (float Float/MIN_VALUE))
-(def default-gen-float-max (float Float/MAX_VALUE))
+(def ^:private default-gen-float-min (float Float/MIN_VALUE))
+(def ^:private default-gen-float-max (float Float/MAX_VALUE))
 
 (defn generate-random-float
   "Generates random float numbers given optional minimum `min` and maximum `max`.
@@ -392,8 +410,8 @@
            (float norm-max))))
      (util/random-float))))
 
-(def default-gen-double-min Double/MIN_VALUE)
-(def default-gen-double-max Double/MAX_VALUE)
+(def ^:private default-gen-double-min Double/MIN_VALUE)
+(def ^:private default-gen-double-max Double/MAX_VALUE)
 
 (defn generate-random-double
   "Generates random double numbers given optional minimum `min` and maximum `max`.
@@ -414,8 +432,8 @@
            norm-max)))
      (util/random-double))))
 
-(def default-gen-vector-min 0)
-(def default-gen-vector-max 16)
+(def default-gen-vector-min "Default minimum count for vector (0)." 0)
+(def default-gen-vector-max "Default maximum count for vector (16)." 16)
 
 (defn generate-random-vector
   "Generates a random vector of element `element-id` given optional minimum size `min` and maximum size `max`.
@@ -508,7 +526,7 @@
 
 ;;; Validators --------------------------------------------------------------------------------
 
-(defn validate-enum
+(defn- validate-enum
   "Validates an enum type set `enum-s` against element value `v` given element id `id` and entry `entry` for better
   validation failure messages."
   [enum-s
@@ -517,7 +535,7 @@
     [{:id id :entry entry
       :msg (str "Failed " id ": value '" v "' not in enum '" enum-s "'.")}]))
 
-(defn validate-string
+(defn- validate-string
   "Validates a string value `v` given minimum length `min` (if non-nil), maximum length `max` (if non-nil),
   and regular expression `regex` (if non-nil).  The element id `id` of the string element as well as the element entry `entry`
   of the string element is also provided for better validation failure messages."
@@ -536,7 +554,7 @@
           [{:id id :entry entry :v v
             :msg (str "Failed '" id "': value '" v "' has too many characters. (max=" max ")")}])))))
 
-(defn validate-keyword
+(defn- validate-keyword
   "Validates a string value `v` given minimum length `min` (if non-nil), maximum length `max` (if non-nil),
   and regular expression `regex` (if non-nil).  The element id `id` of the string element as well as the element entry `entry`
   of the string element is also provided for better validation failure messages."
@@ -547,7 +565,7 @@
       :msg (str "Failed '" id "': value '" v "' is not a keyword.")}]
     (validate-string min max regex (->str v) id entry)))
 
-(defn validate-vector-of
+(defn- validate-vector-of
   "Validates the vector of element id `vector-of-element-id` given a mininum length `min`, maximum length `max`,
   element value `v`, parent element id `id`, and entry `entry`."
   [vector-of-element-id min max
@@ -568,7 +586,7 @@
           [{:id id :entry entry :v v
             :msg (str "Failed '" id "': value '" v "' has too many elements [" (count v) "]. (max=" max ")")}])))))
 
-(defn validate-tuple-of
+(defn- validate-tuple-of
   "Validates the tuple of element ids `vector-of-element-ids` given
   element tuple value `v`, parent element id `id`, and entry `entry`."
   [vector-of-element-ids
@@ -590,7 +608,7 @@
                               (range (count vector-of-element-ids)))]
         vofv))))
 
-(defn validate-poly-vector-of
+(defn- validate-poly-vector-of
   "Validates the poly vector of element ids `vector-of-element-ids` given a mininum length `min`, maximum length `max`,
   element poly vector value `v`, parent element id `id`, and entry `entry`."
   [vector-of-element-ids min max
@@ -613,7 +631,7 @@
           [{:id id :entry entry :v v
             :msg (str "Failed '" id "': value '" v "' has too many elements [" (count v) "]. (max=" max ")")}])))))
 
-(defn validate-set-of
+(defn- validate-set-of
   "Validates the set of element id `set-of-element-id` given a mininum length `min`, maximum length `max`,
   element value `v`, parent element id `id`, and entry `entry`."
   [set-of-element-id min max
@@ -634,7 +652,7 @@
           [{:id id :entry entry :v v
             :msg (str "Failed '" id "': value '" v "' has too many elements [" (count v) "]. (max=" max ")")}])))))
 
-(defn validate-class
+(defn- validate-class
   "Validates that the class `c` is the same as the class of `v` given optional element id `id` and entry `entry`."
   [c
    v id entry]
@@ -643,7 +661,7 @@
       [{:id id :entry entry :v v :c c
         :msg (str "Failed: value '" v "' class '" (class v) "' not as expected class '" c "'.")}])))
 
-(defn validate-joda
+(defn- validate-joda
   "Validates that a Joda datetime value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and entry `entry`."
   [min max
@@ -658,14 +676,14 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is after than max. (max=" max "; " (DateTime. max) ")")}]))))
 
-(defn validate-boolean
+(defn- validate-boolean
   "Validates if value `v` is boolean."
   [v id entry]
   (when-not (boolean? v)
     [{:id id :entry entry :v v
       :msg (str "Failed '" id "': value '" v "' is not a boolean.")}]))
 
-(defn validate-int
+(defn- validate-int
   "Validates that an int number value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and element `entry`."
   [min max
@@ -680,7 +698,7 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
-(defn validate-long
+(defn- validate-long
   "Validates that a long number value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and element `entry`."
   [min max
@@ -695,7 +713,7 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
-(defn validate-float
+(defn- validate-float
   "Validates that a float number value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and element `entry`."
   [min max
@@ -710,7 +728,7 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
-(defn validate-double
+(defn- validate-double
   "Validates that a double number value `v` is valid given the optional minimum `min`, maximum `max`, element id
   `id`, and element `entry`."
   [min max
@@ -725,7 +743,7 @@
         [{:id id :entry entry :v v
           :msg (str "Failed '" id "': value '" v "' is more than max. (max=" max ")")}]))))
 
-(defn explain-nested-elements
+(defn- explain-nested-elements
   "Explain nested elements."
   ([nested-id parent-element-id v element-ids] (explain-nested-elements nested-id parent-element-id v element-ids false false))
   ([nested-id parent-element-id v element-ids unqualified?] (explain-nested-elements nested-id parent-element-id v element-ids unqualified? false))
@@ -748,7 +766,7 @@
            nil
            element-ids)))
 
-(defn explain-map
+(defn- explain-map
   "Explains nested required element entries with the `nested-id`, listing of required element ids `required-element-ids`,
   element value `v`, element id `id`, and element `element`."
   [nested-id
@@ -775,7 +793,7 @@
   (fn [_ _]
     (gen-f)))
 
-(defn normalize-enum
+(defn- normalize-enum
   "Normalizes the enumeration entry type elements (if necessary) given element map `m`.  If not an enum type, passhtru
   the element map `m`."
   [m]
@@ -786,7 +804,7 @@
                :valid-f (partial validate-enum enum-s)))
     m))
 
-(defn normalize-class
+(defn- normalize-class
   "Normalizes the class entry type elements (if necessary) given element map `m`.  If not a class type, passhtru
   the element map `m`."
   [m]
@@ -794,7 +812,7 @@
     (assoc m :valid-f (partial validate-class c))
     m))
 
-(defn normalize-boolean
+(defn- normalize-boolean
   "Normalizes the boolean type elements (if necessary) given element map `m`.  If not a boolean type, passhtru
   the element map `m`."
   [m]
@@ -803,7 +821,7 @@
              :valid-f (partial validate-boolean))
     m))
 
-(defn normalize-int
+(defn- normalize-int
   "Normalizes the int number entry type elements (if necessary) given element map `m`.  If not a int number type, passhtru
   the element map `m`."
   [m]
@@ -812,7 +830,7 @@
              :valid-f (partial validate-int (:min m) (:max m)))
     m))
 
-(defn normalize-long
+(defn- normalize-long
   "Normalizes the long number entry type elements (if necessary) given element map `m`.  If not a long number type, passhtru
   the element map `m`."
   [m]
@@ -821,7 +839,7 @@
              :valid-f (partial validate-long (:min m) (:max m)))
     m))
 
-(defn normalize-float
+(defn- normalize-float
   "Normalizes the float number entry type elements (if necessary) given element map `m`.  If not a float number type, passhtru
   the element map `m`."
   [m]
@@ -830,7 +848,7 @@
              :valid-f (partial validate-float (:min m) (:max m)))
     m))
 
-(defn normalize-double
+(defn- normalize-double
   "Normalizes the double number entry type elements (if necessary) given element map `m`.  If not a double number type, passhtru
   the element map `m`."
   [m]
@@ -839,7 +857,7 @@
              :valid-f (partial validate-double (:min m) (:max m)))
     m))
 
-(defn normalize-any
+(defn- normalize-any
   "Normalizes the any entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
   the element map `m`."
   [m]
@@ -853,7 +871,7 @@
              (when rgx {:regex rgx})))
     m))
 
-(defn normalize-keyword
+(defn- normalize-keyword
   "Normalizes the keyword entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
   the element map `m`."
   [m]
@@ -869,7 +887,7 @@
              (when rgx {:regex rgx})))
     m))
 
-(defn normalize-string
+(defn- normalize-string
   "Normalizes the string entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
   the element map `m`."
   [m]
@@ -885,8 +903,7 @@
              (when rgx {:regex rgx})))
     m))
 
-
-(defn normalize-joda
+(defn- normalize-joda
   "Normalizes the joda entry type elements (if necessary) given element map `m`.  If not a string type, passhtru
   the element map `m`."
   [m]
@@ -895,7 +912,7 @@
              :valid-f (partial validate-joda (:min m) (:max m)))
     m))
 
-(defn normalize-vector
+(defn- normalize-vector
   "Normalizes the vector-of entry type elements (if necessary) given element map `m`.  If not a vector-of type,
   passhtru the element map `m`."
   [m]
@@ -910,7 +927,7 @@
                           (partial validate-vector-of vof (:min m) (:max m))))
     m))
 
-(defn normalize-tuple
+(defn- normalize-tuple
   "Normalizes the poly-tuple-of entry type elements (if necessary) given element map `m`.
   If not a tuple type, passhtru the element map `m`."
   [m]
@@ -922,7 +939,7 @@
                           (partial validate-tuple-of vof)))
     m))
 
-(defn normalize-poly-vector
+(defn- normalize-poly-vector
   "Normalizes the poly-vector-of entry type elements (if necessary) given element map `m`.
   If not a poly-vector-of type, passhtru the element map `m`."
   [m]
@@ -937,7 +954,7 @@
                           (partial validate-poly-vector-of vof (:min m) (:max m))))
     m))
 
-(defn normalize-set
+(defn- normalize-set
   "Normalizes the set entry type elements (if necessary) given element map `m`.  If not a set type,
   passhtru the element map `m`."
   [m]
@@ -952,13 +969,15 @@
                           (partial validate-set-of vof (:min m) (:max m))))
     m))
 
-(defn capture-un-fields
+(defn- capture-un-fields
+  "Generates the un-namespaced name of field list `unf` as a map with `name`
+  of element converted to keyword key and raw field element as value."
   [unf]
   (reduce #(assoc % (-> %2 name keyword) %2)
           nil
           unf))
 
-(defn normalize-map
+(defn- normalize-map
   "Normalizes the required-optional/map entry type elements (if necessary) given entry map `m`.  If not a required-optiona/map type,
   passhtru the entry map `m`."
   [m]
@@ -981,7 +1000,9 @@
                                  optional-element-ids-un))
       m)))
 
-(def type-normalizers (atom nil))
+(def type-normalizers
+  "Atom with type normalizers to auto-register/decorate data elements."
+  (atom nil))
 
 (defn type-normalizer!
   "Register register normalizer function `normalizer-f`."
@@ -995,25 +1016,25 @@
           nil
           normalizer-fs))
 
-(def default-type-normalizers [normalize-enum
-                               normalize-boolean
-                               normalize-int
-                               normalize-long
-                               normalize-float
-                               normalize-double
-                               normalize-string
-                               normalize-class
-                               normalize-joda
-                               normalize-keyword
-                               normalize-vector
-                               normalize-tuple
-                               normalize-poly-vector
-                               normalize-set
-                               normalize-map])
+(def ^:private default-type-normalizers [normalize-enum
+                                         normalize-boolean
+                                         normalize-int
+                                         normalize-long
+                                         normalize-float
+                                         normalize-double
+                                         normalize-string
+                                         normalize-class
+                                         normalize-joda
+                                         normalize-keyword
+                                         normalize-vector
+                                         normalize-tuple
+                                         normalize-poly-vector
+                                         normalize-set
+                                         normalize-map])
 
 (type-normalizers! default-type-normalizers) ; registers default type normalizer functions
 
-(defn normalize-element
+(defn- normalize-element
   "Generates entry settings for element id `id` given the original element map `original-element` (from the call argument),
   merged element from parent and original element `merged-element``, and optional `parent-id` and context map `ctx`."
   [parent-id id original-element ctx merged-element]
@@ -1066,7 +1087,7 @@
                     element)
              ctx)))
 
-(defn resolve-unqualified
+(defn- resolve-unqualified
   "Resolve unqualified element keys given entitiy maps `es` and the
   `key` of either `required-un` or `optional-un`."
   [key es]
@@ -1079,7 +1100,7 @@
                                    nil
                                    es)))
 
-(defn resolve-req-opt-un
+(defn- resolve-req-opt-un
   "Resolves optional unqualified given the existing required unqualified `req-un`
   and the initial opertional unqualified `opt-un` so that there are no unqualified
   element keys in opertional that are also in the required unqualified."
@@ -1093,7 +1114,7 @@
                         nil
                         opt-un)))))
 
-(defn resolve-merged-entities
+(defn- resolve-merged-entities
   "Resolve merged entites `e` and variadic entites `es`."
   [e & es]
   (let [ces (cons e es)
@@ -1109,7 +1130,7 @@
                       (when-not (empty? resolved-opt-un) {opt-un-key resolved-opt-un}))]
     merged))
 
-(defn merge-entities!
+(defn- merge-entities!
   "Merges and registers parent id `parent-id` for element `id` with optional
   element map `element` and context map `ctx`."
   ([{:keys [parent-ids id element ctx]}] (merge-entities! parent-ids id element ctx))
@@ -1135,7 +1156,7 @@
          merged-ctx (merge parent-ctxs ctx)]
      (element! id sm merged-ctx))))
 
-(defn merge!
+(defn- merge!
   "Merges and registers parent id `parent-id` for element `id` with optional
   element map `element` and context map `ctx`."
   ([{:keys [parent-id id element ctx]}] (merge! parent-id id element ctx))
@@ -1227,14 +1248,14 @@
                     (when opt-un {opt-un-key opt-un}))
              ctx)))
 
-(defn document-type?
+(defn- document-type?
   "Determines if diction `entry` is document type or not."
   [entry]
   (let [t (get-in entry [:element :type])]
     (or (= t :document) (= t :map) (= t :entity))))
 
 
-(defn document-field-element-ids
+(defn- document-field-element-ids
   "Generates the field elements for document element `id` for both
   namespaced and unqualified fields."
   [id]
@@ -1253,8 +1274,8 @@
         (when-not (and (empty? flds) (empty? flds-un))
           (into #{} (concat flds flds-un)))))))
 
-(def map! document!)
-(def entity! document!)
+(def map! "Alias for document! function" document!)
+(def entity! "Alias for document! function" document!)
 
 (defn enum!
   "Register an enum element given element id `id`, enum set/list/vector `enums`, element
@@ -1266,52 +1287,52 @@
 
 ;;; Base Elements ------------------------------------------------------------
 
-(def diction-boolean :diction/boolean)
+(def diction-boolean "Diction core boolean data element id." :diction/boolean)
 
-(def diction-int :diction/int)
-(def diction-int-pos :diction/pos-int)
-(def diction-int-neg :diction/neg-int)
+(def diction-int "Diction core integer data element id." :diction/int)
+(def diction-int-pos "Diction core positive integer data element id." :diction/pos-int)
+(def diction-int-neg "Diction core negative integer data element id." :diction/neg-int)
 
-(def diction-long :diction/long)
-(def diction-long-pos :diction/pos-long)
-(def diction-long-neg :diction/neg-long)
+(def diction-long "Diction core long data element id." :diction/long)
+(def diction-long-pos "Diction core positive long data element id." :diction/pos-long)
+(def diction-long-neg "Diction core negative long data element id." :diction/neg-long)
 
-(def diction-float :diction/float)
-(def diction-float-pos :diction/pos-float)
-(def diction-float-neg :diction/neg-float)
+(def diction-float "Diction core float data element id." :diction/float)
+(def diction-float-pos "Diction core positive float data element id." :diction/pos-float)
+(def diction-float-neg "Diction core negative float data element id." :diction/neg-float)
 
-(def diction-double :diction/double)
-(def diction-double-pos :diction/pos-double)
-(def diction-double-neg :diction/neg-double)
+(def diction-double "Diction core double data element id." :diction/double)
+(def diction-double-pos "Diction core positive double data element id." :diction/pos-double)
+(def diction-double-neg "Diction core negative double data element id." :diction/neg-double)
 
-(def diction-string :diction/string)
-(def diction-keyword :diction/keyword)
-(def diction-uuid :diction/uuid)
-(def diction-joda :diction/joda)
+(def diction-string "Diction core string data element id." :diction/string)
+(def diction-keyword "Diction core keyword data element id." :diction/keyword)
+(def diction-uuid "Diction core UUID data element id." :diction/uuid)
+(def diction-joda "Diction core Joda date data element id." :diction/joda)
 
-(def boolean! (partial inherit! diction-boolean))
-(def int! (partial inherit! diction-int))
-(def pos-int! (partial inherit! diction-int-pos))
-(def neg-int! (partial inherit! diction-int-neg))
+(def boolean! "Programmatic registration of a boolean data element." (partial inherit! diction-boolean))
+(def int! "Programmatic registration of an integer data element." (partial inherit! diction-int))
+(def pos-int! "Programmatic registration of a positive integer data element." (partial inherit! diction-int-pos))
+(def neg-int! "Programmatic registration of a negative integer data element." (partial inherit! diction-int-neg))
 
-(def long! (partial inherit! diction-long))
-(def pos-long! (partial inherit! diction-long-pos))
-(def neg-long! (partial inherit! diction-long-neg))
+(def long! "Programmatic registration of a long data element." (partial inherit! diction-long))
+(def pos-long! "Programmatic registration of a positive long data element." (partial inherit! diction-long-pos))
+(def neg-long! "Programmatic registration of a negative long data element." (partial inherit! diction-long-neg))
 
-(def float! (partial inherit! diction-float))
-(def pos-float! (partial inherit! diction-float-pos))
-(def neg-float! (partial inherit! diction-float-neg))
+(def float! "Programmatic registration of a float data element." (partial inherit! diction-float))
+(def pos-float! "Programmatic registration of a positive float data element." (partial inherit! diction-float-pos))
+(def neg-float! "Programmatic registration of a negative float data element." (partial inherit! diction-float-neg))
 
-(def double! (partial inherit! diction-double))
-(def pos-double! (partial inherit! diction-double-pos))
-(def neg-double! (partial inherit! diction-double-neg))
+(def double! "Programmatic registration of a double data element." (partial inherit! diction-double))
+(def pos-double! "Programmatic registration of a positive double data element." (partial inherit! diction-double-pos))
+(def neg-double! "Programmatic registration of a negative data element." (partial inherit! diction-double-neg))
 
-(def string! (partial inherit! diction-string))
-(def keyword! (partial inherit! diction-keyword))
-(def uuid! (partial inherit! diction-uuid))
-(def joda! (partial inherit! diction-joda))
+(def string! "Programmatic registration of a string data element." (partial inherit! diction-string))
+(def keyword! "Programmatic registration of a keyword data element." (partial inherit! diction-keyword))
+(def uuid! "Programmatic registration of a UUID data element." (partial inherit! diction-uuid))
+(def joda! "Programmatic registration of a Joda date data element." (partial inherit! diction-joda))
 
-(defn initialize-diction-elements!
+(defn- initialize-diction-elements!
   []
 
   (element! diction-boolean {:type :boolean})
@@ -1353,7 +1374,7 @@
     (when-let [gen-f (get-in entry [:element :gen-f])]
       (gen-f id entry))))
 
-(defn random-sensible-value
+(defn- random-sensible-value
   "Returns random sensible value (:element :meta :sensible-values) for
   element `id` and optional `generate-as-fallback?` flag.
   Returns `nil` if no sensible values are found and optional `genereate-as-fallback?`
@@ -1377,7 +1398,7 @@
   ([id generate-as-fallback?]
    (random-sensible-value id generate-as-fallback?)))
 
-(def generate generate-sensibly)
+(def generate "Alias for generate-sensibly function call" generate-sensibly)
 
 (defn explain
   "Explains validation failures for element `id` against element value `v` as a vector of maps with validation
@@ -1421,7 +1442,7 @@
 
 (declare groom)
 
-(defn groom-vector
+(defn- groom-vector
   "Grooms a vector of elements for `parent-id`, `id`, value `v` and optional
   context `ctx`."
   ([parent-id id v] (groom-vector parent-id id v nil))
@@ -1577,9 +1598,9 @@
 
 ;;; Import / Export ========================================================
 
-(def exclude-export-keys [:gen-f :valid-f :regex])
+(def ^:private exclude-export-keys [:gen-f :valid-f :regex])
 
-(defn generate-export-entry
+(defn- generate-export-entry
   "Generates export entry map from element entry `entry`."
   [entry]
   (merge (assoc entry :element (apply dissoc (cons (:element entry) exclude-export-keys)))
@@ -1614,7 +1635,7 @@
 
 ;;; Metadata ======================================================
 
-(defn split-meta-query
+(defn- split-meta-query
   "Splits query map `q` into functions and non-functions based on
   values.  Function kvs are in {true : {}} and non-function kvs are in {false : {}}."
   [q]
@@ -1665,19 +1686,22 @@
             nil
             (or element-ids (filter filter-out-diction-elements (keys @dictionary))))))
 
-(def func-types {double! #{:double}
-                 element! #{:document :map :entity}
-                 enum! #{:enum}
-                 float! #{:float}
-                 int! #{:int :integer}
-                 joda! #{:joda :date :datetime}
-                 keyword! #{:keyword :kw}
-                 long! #{:long}
-                 string! #{:text :string}
-                 uuid! #{:uuid}
-                 vector! #{:vector :list}})
+(def ^:private func-types {double! #{:double}
+                           element! #{:document :map :entity}
+                           enum! #{:enum}
+                           float! #{:float}
+                           int! #{:int :integer}
+                           joda! #{:joda :date :datetime}
+                           keyword! #{:keyword :kw}
+                           long! #{:long}
+                           string! #{:text :string}
+                           uuid! #{:uuid}
+                           vector! #{:vector :list}})
 
 (defn- generate-lookups
+  "Generates lookup map given inverted lookup map with the result being the
+  keys in the `lm` values are the keys in the generated map with the `lm`
+  keys as the values."
   [lm]
   (reduce-kv #(reduce (fn [avk vk]
                         (assoc avk vk %2))
@@ -1686,26 +1710,19 @@
           nil
           lm))
 
-(def type-func (generate-lookups func-types))
+(def ^:private type-func (generate-lookups func-types))
 
-(def dev-export
-  {:elements [{:id :yak
-               :type :string
-               :min 0
-               :max 64}
-              {:id :my-uuid
-               :parent-id :diction/uuid}]})
-
-(defn safe-ns
+(defn- safe-ns
   [x]
   (try
     (or (namespace x) "")
     (catch Exception _
       "")))
 
-(def export-exclude-prefix "diction")
+(def ^:private export-exclude-prefix "diction")
 
 (defn export-elements!
+  "Generates the current data elements list."
   []
   (let [d (mapv #(-> %
                      second
@@ -1720,10 +1737,12 @@
     d))
 
 (defn export-elements-to!
+  "Exports elements to `target`."
   [target]
   (spit target {:elements (export-elements!)}))
 
 (defn clean
+  "Cleans the element `element` by removing `type` and `id` fields."
   [elem]
   (dissoc elem :type :id))
 
@@ -1752,24 +1771,27 @@
         of (get elem of-key)]
     (register-f id of (clean elem))))
 
-(def import-vector! (partial import-ofs! vector! :vector-of))
-(def import-poly-vector! (partial import-ofs! poly-vector! :poly-vector-of))
-(def import-set! (partial import-ofs! set-of! :set-of))
-(def import-enum! (partial import-ofs! enum! :enum))
-(def import-tuple! (partial import-ofs! tuple! :tuple))
+(def import-vector! "Import declarative vector data element." (partial import-ofs! vector! :vector-of))
+(def import-poly-vector! "Import declarative poly-vector data element." (partial import-ofs! poly-vector! :poly-vector-of))
+(def import-set! "Import declarative set data element." (partial import-ofs! set-of! :set-of))
+(def import-enum! "Import declarative enum data element." (partial import-ofs! enum! :enum))
+(def import-tuple! "Import declarative tuple data element." (partial import-ofs! tuple! :tuple))
 
-(def import-string! (partial import-element! string!))
-(def import-keyword! (partial import-element! keyword!))
-(def import-double! (partial import-element! double!))
-(def import-pos-double! (partial import-element! pos-double!))
-(def import-neg-double! (partial import-element! neg-double!))
-(def import-long! (partial import-element! long!))
-(def import-float! (partial import-element! float!))
-(def import-pos-float! (partial import-element! pos-float!))
-(def import-neg-float! (partial import-element! neg-float!))
-(def import-boolean! (partial import-element! boolean!))
+(def import-string! "Import declarative string data element." (partial import-element! string!))
+(def import-keyword! "Import declarative keyword data element." (partial import-element! keyword!))
+(def import-double! "Import declarative double data element." (partial import-element! double!))
+(def import-pos-double! "Import declarative positive double data element." (partial import-element! pos-double!))
+(def import-neg-double! "Import declarative negative double data element." (partial import-element! neg-double!))
+(def import-long! "Import declarative long data element." (partial import-element! long!))
+(def import-pos-long! "Import declarative positive long data element." (partial import-element! pos-long!))
+(def import-neg-long! "Import declarative negative long data element." (partial import-element! neg-long!))
+(def import-float! "Import declarative float data element." (partial import-element! float!))
+(def import-pos-float! "Import declarative positive float data element." (partial import-element! pos-float!))
+(def import-neg-float! "Import declarative negative float data element." (partial import-element! neg-float!))
+(def import-boolean! "Import declarative boolean data element." (partial import-element! boolean!))
 
 (def types->functions
+  "Maps data element types to import functions."
   {:string import-string!
    :keyword import-keyword!
    :document import-document!
@@ -1777,6 +1799,8 @@
    :pos-double import-pos-double!
    :neg-double import-neg-double!
    :long import-long!
+   :pos-long import-pos-long!
+   :neg-long import-neg-long!
    :float import-float!
    :pos-float import-pos-float!
    :neg-float import-neg-float!

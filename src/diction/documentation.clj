@@ -7,19 +7,19 @@
             [markdown.core :as md])
   (:import (java.util Date)))
 
-(def kv-sep ": ")
-(def bullet "- ")
+(def ^:private kv-sep ": ")
+(def ^:private bullet "- ")
 
-(def spacing 2)
+(def ^:private spacing 2)
 
-(def spaces (str/join (repeat 500 " ")))
+(def ^:private spaces (str/join (repeat 500 " ")))
 
-(def default-css
+(def ^:private default-css
   (str "\nbody {\n    font-family: sans-serif, Arial, monospace, serif;\n    alignment: center;\n}\n"
        "ul {\n    list-style-type: square;\n}\n"
        "#wrapper {\n    width: 980px;\n    margin: 0 auto;\n    padding-top: 5px;\n    text-align: left;\n}\n"))
 
-(defn ->str
+(defn- ->str
   "Converts `x` to string."
   [x]
   (if (keyword? x)
@@ -27,7 +27,7 @@
     (-> x
         str)))
 
-(defn ->anchor
+(defn- ->anchor
   "Converts `x` to anchor name."
   [x]
   (-> x
@@ -38,33 +38,34 @@
       (str/replace "/" "_")
       (str/replace "-" "_")))
 
-(defn local-link
+(defn- local-link
+  "Generates a local link based on `x`."
   [x]
   (str "<a href=\"#" (->anchor x) "\">" (->str x) "</a>"))
 
-(defn indent
+(defn- indent
   "Generates spaces for indenting line to level `n`."
   [n]
   (subs spaces 0 (* n spacing)))
 
-(defn bullet-line
+(defn- bullet-line
   "Generates a bullet line by concatenating a line to the `acc` accumulator
   string with indentions to the appropriate `level` and the line string `s`."
   [acc level s]
   (str acc "\n" (indent level) "- " s))
 
-(def document-element-keys [:required-un :optional-un :required :optional])
+(def ^:private document-element-keys [:required-un :optional-un :required :optional])
 
-(defn document-children-element-ids
+(defn- document-children-element-ids
   "Retrieves children element ids from `element-info`."
   [element-info]
   (reduce #(concat % (get-in element-info [:element %2]))
           []
           document-element-keys))
 
-(def exclude-element-fields [:meta :gen-f :valid-f :optional-un-m :required-un-m :required-m :optional-m :regex :summary])
+(def ^:private exclude-element-fields [:meta :gen-f :valid-f :optional-un-m :required-un-m :required-m :optional-m :regex :summary])
 
-(def reference-keys #{:fields :vector-of :set-of :tuple :id
+(def ^:private reference-keys #{:fields :vector-of :set-of :tuple :id
                       :required-fields :required-unqualified-fields
                       :required :required-un
                       :reference
@@ -74,7 +75,7 @@
                       :optional :optional-un
                       :referenced-by})
 
-(defn doc-value
+(defn- doc-value
   "Wrap value `x` with double-quotes if `x` is string."
   [x]
   (if (string? x)
@@ -83,7 +84,7 @@
       x
       (->str x))))
 
-(defn decorate-value
+(defn- decorate-value
   "Decorate value `v`.  Currently passes through maps, but comma-delimits collections."
   ([v] (decorate-value nil v))
   ([vf v]
@@ -98,9 +99,9 @@
                 " ]"))
          (nvf v))))))
 
-(def decorate-local-link-value (partial decorate-value local-link))
+(def ^:private decorate-local-link-value (partial decorate-value local-link))
 
-(defn element-bullet
+(defn- element-bullet
   "Generate element bullet for key `k` and value `v` and optional set `ref-ks`
   that add local link refs if key `k` in `ref-ks`."
   ([k v] (element-bullet nil k v))
@@ -111,14 +112,14 @@
        (str pre (decorate-local-link-value v))
        (str pre (decorate-value v))))))
 
-(defn index-bullet
+(defn- index-bullet
   "Generate index bullet for key `id` and optional label `lbl`."
   ([id] (index-bullet id nil))
   ([id lbl]
    (str bullet (decorate-local-link-value id)
         (when lbl (str " (" lbl ")")))))
 
-(defn element-bullet-legacy
+(defn- element-bullet-legacy
   "Generate element bullet for key `k` and value `v` and optional set `ref-ks`
   that add local link refs if key `k` in `ref-ks`."
   ([k v] (element-bullet-legacy nil k v))
@@ -135,7 +136,7 @@
          (str pre (local-link v)))
        (str pre v)))))
 
-(defn map->markdown
+(defn- map->markdown
   "Convert meta `meta` for element `id` with optional `level`."
   ([m] (map->markdown nil m))
   ([level m]
@@ -146,7 +147,7 @@
                  "\n"
                  m)))))
 
-(defn index->markdown
+(defn- index->markdown
   "Generate index markdown using data dictionary `fields`."
   [fields]
   (reduce #(let [{:keys [element id]} %2
@@ -155,7 +156,7 @@
           ""
           fields))
 
-(defn generate-all
+(defn- generate-all
   "Generates an element `element-id` with forced `sensible-values` to `true`
   and `generate-all-fields` to `true`."
   [element-id]
@@ -163,7 +164,7 @@
             diction/*generate-all-fields* true]
     (diction/generate element-id)))
 
-(defn ->markdown-elements
+(defn- ->markdown-elements
   "Generate markdown elements `elems` given existing string `body` and
   `title` of the section."
   [elems body title]

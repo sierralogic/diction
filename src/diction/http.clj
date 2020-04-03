@@ -1,26 +1,30 @@
 (ns diction.http
   (:require [diction.core :as diction]))
 
-; (compojure.core/wrap-routes validate-payload)
-; (compojure.core/wrap-routes validate-parameters)
-
 ;; Payload/Parameters Route Dictions and Invalid Response Function
 
-(def default-payload-validaton-routes
+(def ^:private default-payload-validaton-routes
   {"/diction-echo" {:post :diction/foobar}})
 
-(def payload-validation-routes (atom default-payload-validaton-routes))
+(def payload-validation-routes
+  "Atom with payload validation routes.\n\n```\n{\"path\" {:method :data-element-validation-id}}\n```"
+  (atom default-payload-validaton-routes))
+
 (defn payload-validation-routes!
   "Set the `payload-validation-routes` map with `pvrs`."
   [pvrs]
   (reset! payload-validation-routes pvrs))
 
-(def default-parameter-validaton-routes
+(def ^:private default-parameter-validaton-routes
   {"/diction-ping" {:get :diction/foobar}})
 
-(def parameter-validation-routes (atom default-parameter-validaton-routes))
+(def parameter-validation-routes
+  "Atom with parameter validation routes.\n\n```\n{\"path\" {:method :parameter-data-element-validation-id}}\n```"
+
+  (atom default-parameter-validaton-routes))
+
 (defn parameter-validation-routes!
-  "Set the `parameter-validation-routes` map with `pvrs`."
+  "Sets the `parameter-validation-routes` map with `pvrs`."
   [pvrs]
   (reset! parameter-validation-routes pvrs))
 
@@ -31,8 +35,15 @@
   {:status 400
    :body body})
 
-(def bad-request-response-f (atom simple-bad-request-response))
-(defn bad-request-response-f! [f] (reset! bad-request-response-f f))
+(def bad-request-response-f
+  "Atom for bad request response function."
+  (atom simple-bad-request-response))
+
+(defn bad-request-response-f!
+  "Sets the bad request response function to `f`.
+  (bad-request-response-f! (fn [x] {:status 400 :body x}))"
+  [f]
+  (reset! bad-request-response-f f))
 
 ;; Utiltities
 
@@ -77,5 +88,10 @@
           (handler request)))
       (handler request))))
 
-(def validate-payload (partial validate ->payload-element-id :body "Payload"))
-(def validate-parameters (partial validate ->parameter-element-id :params "Parameter"))
+(def validate-payload
+  "Partial function to validate payload."
+  (partial validate ->payload-element-id :body "Payload"))
+
+(def validate-parameters
+  "Partial function to validation parameters."
+  (partial validate ->parameter-element-id :params "Parameter"))
