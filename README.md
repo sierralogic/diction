@@ -33,7 +33,7 @@ management.
   - basic validation
   - descriptive explanation of validation failures
   - generation w/ optional `sensible-values` (human-readable)
-  - grooming (recursive document sieve to only only declared fields through)
+  - grooming (recursive document sieve to only allow declared fields through)
   - metadata
     - audit
     - personal identifiable information (PII) tracking at element level
