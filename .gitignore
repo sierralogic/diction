@@ -13,3 +13,6 @@ dev.clj
 /.cpcache
 data-dictionary*.md
 dict*.html
+*.iml
+/.idea
+
